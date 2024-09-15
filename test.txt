@@ -1,0 +1,9 @@
+++&$!=
+123456789
+abc
+def
+hola$
+//asdasdasdasdasdasfdrgerg
+++--
+integerboolean
+integer boolean

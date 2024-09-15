@@ -59,12 +59,7 @@ void gettoken(char*& pos, std::vector< Token> &tokens, std::vector<std::string> 
     end++;
     std::string s;
     char c = getchar(pos);
-    s.clear();
-    if (c == '\r') {
-        c = getchar(pos);
-        columnCounter = 1;
-    }
-    while (c == ' ' || c == '\n') {
+    s.clear();    while (c == ' ' || c == '\n' || c=='\r') {
         if (c == ' ') {
             c = getchar(pos);
         }
@@ -72,6 +67,9 @@ void gettoken(char*& pos, std::vector< Token> &tokens, std::vector<std::string> 
             c = getchar(pos);
             lineCounter++;
             columnCounter = 1;
+        }
+        if (c == '\r') {
+            c = getchar(pos);
         }
     }
     if (c == '[') {
@@ -281,7 +279,8 @@ void gettoken(char*& pos, std::vector< Token> &tokens, std::vector<std::string> 
             c = getchar(pos);
         }
         pos--;
-        std::cout << "DEBUG SCAN - " << NUMBER << " [" << s << "] found at (" << lineCounter << ":" << columnCounter-s.size() << ")\n";
+        columnCounter--;
+        std::cout << "DEBUG SCAN - " << NUMBER << " [" << s << "] found at (" << lineCounter << ":" << columnCounter-s.size()+1 << ")\n";
         tokens.push_back(NUMBER);
         values.push_back(s);
         return;
@@ -294,37 +293,38 @@ void gettoken(char*& pos, std::vector< Token> &tokens, std::vector<std::string> 
             c = getchar(pos);
         }
         pos--;
+        columnCounter--;
         if (s == "integer") {
-            std::cout << "DEBUG SCAN - " << INTEGER << " found at (" << lineCounter << ":" << columnCounter - s.size() << ")\n";
+            std::cout << "DEBUG SCAN - " << INTEGER << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
             tokens.push_back(INTEGER);
             return;
         }
         if (s == "boolean") {
-            std::cout << "DEBUG SCAN - " << BOOLEAN << " found at (" << lineCounter << ":" << columnCounter - s.size() << ")\n";
+            std::cout << "DEBUG SCAN - " << BOOLEAN << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
             tokens.push_back(BOOLEAN);
             return;
         }
         if (s == "char") {
-            std::cout << "DEBUG SCAN - " << CHAR << " found at (" << lineCounter << ":" << columnCounter - s.size() << ")\n";
+            std::cout << "DEBUG SCAN - " << CHAR << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
             tokens.push_back(CHAR);
             return;
         }
         if (s == "string") {
-            std::cout << "DEBUG SCAN - " << STRING << " found at (" << lineCounter << ":" << columnCounter - s.size() << ")\n";
+            std::cout << "DEBUG SCAN - " << STRING << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
             tokens.push_back(STRING);
             return;
         }
         if (s == "false") {
-            std::cout << "DEBUG SCAN - " << FALSE << " found at (" << lineCounter << ":" << columnCounter - s.size() << ")\n";
+            std::cout << "DEBUG SCAN - " << FALSE << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
             tokens.push_back(FALSE);
             return;
         }
         if (s == "true") {
-            std::cout << "DEBUG SCAN - " << TRUE << " found at (" << lineCounter << ":" << columnCounter - s.size() << ")\n";
+            std::cout << "DEBUG SCAN - " << TRUE << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
             tokens.push_back(TRUE);
             return;
         }
-        std::cout << "DEBUG SCAN - " << IDENTIFIER << " ["<<s<<"] found at (" << lineCounter << ":" << columnCounter - s.size() << ")\n";
+        std::cout << "DEBUG SCAN - " << IDENTIFIER << " ["<<s<<"] found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
         tokens.push_back(IDENTIFIER);
         values.push_back(s);
         return;

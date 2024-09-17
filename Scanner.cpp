@@ -31,7 +31,7 @@ enum Token {
     BRACE_CLOSE,        // }
     COMMA,              // ,
     SEMICOLON,          // ;
-    DOUBLE_QUOTE,       // "
+    STRING_VALUE,       // "wqfas $%asd"
     SINGLE_QUOTE,       // '
     NUMBER,             // 37
     IDENTIFIER,         // x
@@ -40,7 +40,16 @@ enum Token {
     CHAR,               // char
     STRING,             // string
     FALSE,              // false
-    TRUE                // true
+    TRUE,               // true
+    ARRAY,              //array
+    ELSE,               //else
+    FOR,                //for
+    FUNCTION,           //function
+    IF,                 //if
+    PRINT,              //print
+    RETURN,             //return
+    VOID,               //void
+    WHILE               //while
 };
 
 int lineCounter = 1;
@@ -267,8 +276,21 @@ void gettoken(char*& pos, std::vector< Token> &tokens, std::vector<std::string> 
         return;
     }
     if (c == 34) {
-        std::cout << "DEBUG SCAN - " << DOUBLE_QUOTE << " found at (" << lineCounter << ":" << columnCounter << ")\n";
-        tokens.push_back(DOUBLE_QUOTE);
+        s+=c;
+        c = getchar(pos);
+        while (c != '"') {
+            if (c=='\r'){
+                errorCounter++;
+                std::cout << "DEBUG SCAN - " << "Invalid token (" << s << ") at (" << lineCounter << ":" << columnCounter - s.size() << ")\n";
+                pos--;
+                return;
+            }
+            s += c;
+            c = getchar(pos);
+        }
+        s+=c;
+        std::cout << "DEBUG SCAN - " << STRING_VALUE << " [" << s << "] found at (" << lineCounter << ":" << columnCounter-s.size()+1 << ")\n";
+        tokens.push_back(STRING_VALUE);
         return;
     }
     if (c >= '0' && c <= '9') {
@@ -280,10 +302,30 @@ void gettoken(char*& pos, std::vector< Token> &tokens, std::vector<std::string> 
         }
         pos--;
         columnCounter--;
-        std::cout << "DEBUG SCAN - " << NUMBER << " [" << s << "] found at (" << lineCounter << ":" << columnCounter-s.size()+1 << ")\n";
-        tokens.push_back(NUMBER);
-        values.push_back(s);
-        return;
+        if (s.size()==20){
+            if (s<="18446744073709551615") {
+                std::cout << "DEBUG SCAN - " << NUMBER << " [" << s << "] found at (" << lineCounter << ":" << columnCounter-s.size()+1 << ")\n";
+                tokens.push_back(NUMBER);
+                values.push_back(s);
+            }
+            else{
+                errorCounter++;
+                std::cout << "DEBUG SCAN - " << "Max value of integer exceeded (" << s << ") at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
+            }
+            return;
+        }
+        else if (s.size()<20){
+            std::cout << "DEBUG SCAN - " << NUMBER << " [" << s << "] found at (" << lineCounter << ":" << columnCounter-s.size()+1 << ")\n";
+            tokens.push_back(NUMBER);
+            values.push_back(s);
+            return;
+        }
+        else{
+            errorCounter++;
+            std::cout << "DEBUG SCAN - " << "Max value of integer exceeded (" << s << ") at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
+            return;
+        }
+        
     }
     if (c >= 65 && c <= 90 || c >= 97 && c <= 122 || c == '_') {
         s += c;
@@ -322,6 +364,51 @@ void gettoken(char*& pos, std::vector< Token> &tokens, std::vector<std::string> 
         if (s == "true") {
             std::cout << "DEBUG SCAN - " << TRUE << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
             tokens.push_back(TRUE);
+            return;
+        }
+        if (s == "array") {
+            std::cout << "DEBUG SCAN - " << TRUE << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
+            tokens.push_back(ARRAY);
+            return;
+        }
+        if (s == "else") {
+            std::cout << "DEBUG SCAN - " << TRUE << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
+            tokens.push_back(ELSE);
+            return;
+        }
+        if (s == "for") {
+            std::cout << "DEBUG SCAN - " << TRUE << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
+            tokens.push_back(FOR);
+            return;
+        }
+        if (s == "function") {
+            std::cout << "DEBUG SCAN - " << TRUE << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
+            tokens.push_back(FUNCTION);
+            return;
+        }
+        if (s == "if") {
+            std::cout << "DEBUG SCAN - " << TRUE << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
+            tokens.push_back(IF);
+            return;
+        }
+        if (s == "print") {
+            std::cout << "DEBUG SCAN - " << TRUE << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
+            tokens.push_back(PRINT);
+            return;
+        }
+        if (s == "return") {
+            std::cout << "DEBUG SCAN - " << TRUE << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
+            tokens.push_back(RETURN);
+            return;
+        }
+        if (s == "void") {
+            std::cout << "DEBUG SCAN - " << TRUE << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
+            tokens.push_back(VOID);
+            return;
+        }
+        if (s == "while") {
+            std::cout << "DEBUG SCAN - " << TRUE << " found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";
+            tokens.push_back(WHILE);
             return;
         }
         std::cout << "DEBUG SCAN - " << IDENTIFIER << " ["<<s<<"] found at (" << lineCounter << ":" << columnCounter - s.size() + 1 << ")\n";

@@ -1,7 +1,9 @@
 ++&$!=
-123456789
+18446744073709551615
+"asdasdasdasdasdasfdrgerg
+"qwe",
 abc
-def
+def while
 hola$
 //asdasdasdasdasdasfdrgerg
 ++--

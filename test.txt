@@ -1,11 +1,13 @@
-++&$!=
+###++&$!=[]
 18446744073709551615
+18446744073709551616
 "asdasdasdasdasdasfdrgerg
 "qwe",
-abc
-def while
-hola$
+abc'
+'
+def while'' fgh
+hola$'a'rtrt
 //asdasdasdasdasdasfdrgerg
-++--
-integerboolean
+++--\n 'we'
+integerboolean  
 integer boolean

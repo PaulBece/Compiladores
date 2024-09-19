@@ -53,9 +53,6 @@ enum Token {
     END_OF_FILE         //
 };
 
-#include <iostream>
-#include <string>
-
 std::string getTokenName(Token token) {
     switch (token) {
         case BRACKET_OPEN:       return "BRACKET_OPEN";

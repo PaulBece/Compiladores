@@ -49,7 +49,8 @@ enum Token {
     PRINT,              //print
     RETURN,             //return
     VOID,               //void
-    WHILE               //while
+    WHILE,              //while
+    END_OF_FILE         //
 };
 
 int lineCounter = 1;
@@ -457,6 +458,7 @@ int main()
     while (pos <= &buffer[buffer.size()-1]) {
         gettoken(pos,tokens,values, &buffer[buffer.size()-1]);
     }
+    tokens.push_back(END_OF_FILE);
     
     std::cout << "INFO SCAN - Completed with "<<errorCounter<<" errors\n";
 

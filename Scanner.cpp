@@ -501,9 +501,15 @@ void gettoken(char*& pos, std::vector< Token> &tokens, std::vector<std::string> 
     std::cout << "DEBUG SCAN - " << "Invalid token (" << s << ") at (" << lineCounter << ":" << columnCounter << ")\n";
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    const std::string filePath = "test.txt";
+	if (argc != 2)
+	{
+		std::cout << "No source file provided" << std::endl;
+		return 1;
+	}
+	
+    const std::string filePath = argv[1];
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
 
     if (!file) {

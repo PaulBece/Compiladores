@@ -1,0 +1,145 @@
+B-Minor Compiler Grammar
+1. Program → Declaration
+| Program Declaration
+
+1P. Program -> Declaration ProgramPrime
+    ProgramPrime -> Declaration ProgramPrime
+    | eps
+
+2. Declaration → Function
+| VarDecl
+3. Function → Type Identifier (Params) { StmtList }
+4. Type → IntType
+| BoolType
+| CharTypr
+| StringType
+| Type [ ]
+| Void
+5. Params → Type Identifier
+| Type Identifier, Params
+| ϵ
+
+5P. Params -> Type Identifier ParamsPrime
+    | eps
+    ParamsPrime -> , Params
+    | eps
+
+6. VarDecl → Type Identifier ;
+| Type Identifier = Expression ;
+
+6P. VarDecl -> Type Identifier VarDeclPrime
+    VarDeclPrime -> ;
+    | = Expression ;
+
+7. StmtList → Statement
+| StmtList Statement
+
+7P. StmtList -> Statement StmtListPrime
+    StmtListPrime -> Statement StmtListPrime
+    | eps
+ 
+8. Statement → VarDecl
+| IfStmt
+| ForStmt
+| ReturnStmt
+| ExprStmt
+| PrintStmt
+| { StmtList }
+9. IfStmt → if (Expression) Statement
+| if (Expression) Statement else Statement
+
+9P. IfStmt -> if (Expression) Statement IfStmtPrime
+    IfStmtPrime -> else Statement
+    | eps
+
+10. ForStmt → for (ExprStmt Expression ; ExprStmt) Statement
+11. ReturnStmt → return Expression ;
+12. PrintStmt → print (ExprList) ;
+13. ExprStmt → Expression ;
+| ;
+14. ExprList → Expression
+| Expression , ExprList
+
+14P. ExprList -> Expression ExprListPrime
+     ExprListPrime -> , ExprList
+     | eps
+
+15. Expression → Identifier = Expression
+| OrExpr
+16. OrExpr → AndExpr
+| OrExpr || AndExpr
+
+16P. OrExpr -> AndExpr OrExprPrime
+     OrExprPrime -> || AndExpr OrExprPrime
+     | eps
+
+17. AndExpr → EqExpr
+| AndExpr AND EqExpr
+
+17P. AndExpr -> EqExpr AndExprPrime
+     AndExprPrime -> && EqExpr AndExprPrime
+     | eps
+
+18. EqExpr → RelExpr
+| EqExpr == RelExpr
+| EqExpr != RelExpr
+
+18P. EqExpr -> RelExpr EqExprPrime
+     EqExprPrime -> == RelExpr EqExprPrime
+     | != RelExpr EqExprPrime
+     | eps
+
+19. RelExpr → Expr
+| RelExpr < Expr
+| RelExpr > Expr
+| RelExpr <= Expr
+| RelExpr >= Expr
+
+19P. RelExpr -> Expr RelExprPrime
+     RelExprPrime -> < Expr RelExprPrime
+     | > Expr RelExprPrime
+     | <= Expr RelExprPrime
+     | >= Expr RelExprPrime
+     | eps
+
+20. Expr → Term
+| Expr + Term
+| Expr - Term
+
+20P. Expr -> Term ExprPrime
+     ExprPrime -> + Term ExprPrime
+     | - Term ExprPrime
+     | eps
+
+21. Term → Unary
+| Term * Unary
+| Term / Unary
+| Term % Unary
+
+21P. Term -> Unary TermPrime
+     TermPrime -> * Unary TermPrime
+     | / Unary TermPrime
+     | % Unary TermPrime
+     | eps
+
+22. Unary → ! Unary
+| - Unary
+| Factor
+23. Factor → Identifier
+| IntegerLiteral
+| CharLiteral
+| StringLiteral
+| BooleanLiteral
+| ( Expression )
+| Identifier ( ExprList )
+| Factor [ Expression ]
+
+23P. Factor -> Identifier FactorPrime
+     | IntegerLiteral FactorPrime
+     | CharLiteral FactorPrime
+     | StringLiteral FactorPrime
+     | BooleanLiteral FactorPrime
+     | ( Expression ) FactorPrime
+     | Identifier ( ExprList ) FactorPrime
+     FactorPrime -> [ Expression ] FactorPrime
+     | eps

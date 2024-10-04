@@ -15,6 +15,15 @@ B-Minor Compiler Grammar
 | StringType
 | Type [ ]
 | Void
+
+4P. Type → IntType TypePrime
+| BoolType TypePrime
+| CharTypr TypePrime
+| StringType TypePrime
+| Void TypePrime
+TypePrime -> [ ] TypePrime
+| eps
+
 5. Params → Type Identifier
 | Type Identifier, Params
 | ϵ

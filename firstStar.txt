@@ -1,82 +1,120 @@
 IntType BoolType CharType StringType Void
+
 IntType BoolType CharType StringType Void
 $
+
 IntType BoolType CharType StringType Void
+
 (
 ; =
+
 (
+
 IntType
 BoolType
 CharType
 StringType
 Void
+
 [
 Identifier
+
 IntType BoolType CharType StringType Void
 )
+
 ,
 )
+
 ;
 =
+
 Identifier ( { IntType BoolType CharType StringType Void ; if for return print - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
+
 Identifier ( { IntType BoolType CharType StringType Void ; if for return print - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
 }
-IntegerLiteral CharLiteral StringLiteral BooleanLiteral
+
+IntType BoolType CharType StringType Void
 if
 for
 return
 Identifier ( ; - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
 print
 {
+
 if
+
 else
 Identifier ( { } IntType BoolType CharType StringType Void ; if for return print - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
+
 for
+
 return
+
 print
+
 Identifier ( - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
 ;
+
 Identifier ( - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
+
 ,
 )
+
 Identifier ( - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
+
 =
 ) ] , ;
+
 Identifier ( - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
+
 ||
 ) ] , ; =
+
 Identifier ( - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
+
 &&
 ) ] , ; = ||
+
 Identifier ( - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
+
 ==
 !=
 ) ] , ; = || &&
+
 Identifier ( - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
+
 <
 >
 <=
 >=
 ) ] , ; = || && == !=
+
 Identifier ( - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
+
 +
 -
 ) ] , ; = || && == != < > <= >=
+
 Identifier ( - ! IntegerLiteral CharLiteral StringLiteral BooleanLiteral
+
 *
 /
 %
 ) ] , ; = || && == != < > <= >= + -
+
 !
 -
 Identifier ( IntegerLiteral CharLiteral StringLiteral BooleanLiteral
+
 Identifier
 IntegerLiteral
 CharLiteral
 StringLiteral
 BooleanLiteral
 (
+
 (
 ) [ ] , ; = || && == != < > <= >= + - * / %
+
 [
 ) ] , ; = || && == != < > <= >= + - * / %

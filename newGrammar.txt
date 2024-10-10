@@ -1,26 +1,38 @@
 Program -> Declaration ProgramPrime
+
 ProgramPrime -> Declaration ProgramPrime
 ProgramPrime -> ϵ
+
 Declaration -> Type Identifier DeclarationPrime
+
 DeclarationPrime -> Function
 DeclarationPrime -> VarDecl
+
 Function -> ( Params ) { StmtList }
+
 Type -> IntType TypePrime
 Type -> BoolType TypePrime
 Type -> CharType TypePrime
 Type -> StringType TypePrime
 Type -> Void TypePrime
+
 TypePrime -> [ ] TypePrime
 TypePrime -> ϵ
+
 Params -> Type Identifier ParamsPrime
 Params -> ϵ
+
 ParamsPrime -> , Params
 ParamsPrime -> ϵ
+
 VarDecl -> ;
 VarDecl -> = Expression ;
+
 StmtList -> Statement StmtListPrime
+
 StmtListPrime -> Statement StmtListPrime
 StmtListPrime -> ϵ
+
 Statement -> Type Identifier VarDecl
 Statement -> IfStmt
 Statement -> ForStmt
@@ -28,55 +40,81 @@ Statement -> ReturnStmt
 Statement -> ExprStmt
 Statement -> PrintStmt
 Statement -> { StmtList }
+
 IfStmt -> if ( Expression ) { Statement } IfStmtPrime
+
 IfStmtPrime -> else { Statement }
 IfStmtPrime -> ϵ
+
 ForStmt -> for ( ExprStmt Expression ; ExprStmt ) Statement
+
 ReturnStmt -> return Expression ;
+
 PrintStmt -> print ( ExprList ) ;
+
 ExprStmt -> Expression ;
 ExprStmt -> ;
+
 ExprList -> Expression ExprListPrime
+
 ExprListPrime -> , ExprList
 ExprListPrime -> ϵ
+
 Expression -> OrExpr ExpressionPrime
+
 ExpressionPrime -> = OrExpr
 ExpressionPrime -> ϵ
+
 OrExpr -> AndExpr OrExprPrime
+
 OrExprPrime -> || AndExpr OrExprPrime
 OrExprPrime -> ϵ
+
 AndExpr -> EqExpr AndExprPrime
+
 AndExprPrime -> && EqExpr AndExprPrime
 AndExprPrime -> ϵ
+
 EqExpr -> RelExpr EqExprPrime
+
 EqExprPrime -> == RelExpr EqExprPrime
 EqExprPrime -> != RelExpr EqExprPrime
 EqExprPrime -> ϵ
+
 RelExpr -> Expr RelExprPrime
+
 RelExprPrime -> < Expr RelExprPrime
 RelExprPrime -> > Expr RelExprPrime
 RelExprPrime -> <= Expr RelExprPrime
 RelExprPrime -> >= Expr RelExprPrime
 RelExprPrime -> ϵ
+
 Expr -> Term ExprPrime
+
 ExprPrime -> + Term ExprPrime
 ExprPrime -> - Term ExprPrime
 ExprPrime -> ϵ
+
 Term -> Unary TermPrime
+
 TermPrime -> * Unary TermPrime
 TermPrime -> / Unary TermPrime
 TermPrime -> % Unary TermPrime
 TermPrime -> ϵ
+
 Unary -> ! Unary
 Unary -> - Unary
 Unary -> Factor
+
 Factor -> Identifier FactorPrime1 FactorPrime2
 Factor -> IntegerLiteral FactorPrime2
 Factor -> CharLiteral FactorPrime2
 Factor -> StringLiteral FactorPrime2
 Factor -> BooleanLiteral FactorPrime2
 Factor -> ( Expression ) FactorPrime2
+
 FactorPrime1 -> ( ExprList )
 FactorPrime1 -> ϵ
+
 FactorPrime2 -> [ Expression ] FactorPrime2
 FactorPrime2 -> ϵ

@@ -70,12 +70,13 @@ TermPrime -> ϵ
 Unary -> ! Unary
 Unary -> - Unary
 Unary -> Factor
-Factor -> Identifier FactorPrime
-Factor -> IntegerLiteral FactorPrime
-Factor -> CharLiteral FactorPrime
-Factor -> StringLiteral FactorPrime
-Factor -> BooleanLiteral FactorPrime
-Factor -> ( Expression ) FactorPrime
-Factor -> Identifier ( ExprList ) FactorPrime
-FactorPrime -> [ Expression ] FactorPrime
-FactorPrime -> ϵ
+Factor -> Identifier FactorPrime1 FactorPrime2
+Factor -> IntegerLiteral FactorPrime2
+Factor -> CharLiteral FactorPrime2
+Factor -> StringLiteral FactorPrime2
+Factor -> BooleanLiteral FactorPrime2
+Factor -> ( Expression ) FactorPrime2
+FactorPrime1 -> ( ExprList )
+FactorPrime1 -> ϵ
+FactorPrime2 -> [ Expression ] FactorPrime2
+FactorPrime2 -> ϵ

@@ -76,6 +76,7 @@ CharLiteral
 StringLiteral
 BooleanLiteral
 (
-Identifier
+(
+) [ ] , ; = || && == != < > <= >= + - * / %
 [
 ) ] , ; = || && == != < > <= >= + - * / %

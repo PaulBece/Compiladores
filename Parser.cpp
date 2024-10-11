@@ -1,83 +1,28 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <fstream>
-#include <algorithm>
-#include "common.h"
-
-std::vector<Token> tokens;
-
-int curr = 0;
+#include "Parser.h"
 
 void error(std::string msg)
 {
     std::cout << "Error: " << msg << '\n';
 }
 
-bool check(const std::vector<Token>& tokList)
+bool Parser::check(const std::vector<Token>& tokList)
 {   
-    return curr < tokens.size() && std::find(tokList.begin(), tokList.end(), tokens[curr]) != tokList.end();
+    return curr < (*tokenPtr).size() && std::find(tokList.begin(), tokList.end(), (*tokenPtr)[curr]) != tokList.end();
 }
 
-bool terminal(Token token)
+bool Parser::terminal(Token token)
 {
-    return curr < tokens.size() && tokens[curr++] == token;
+    return curr < (*tokenPtr).size() && (*tokenPtr)[curr++] == token;
 }
 
-bool eval();
-bool program();
-bool programPrime();
-bool declaration();
-bool declarationPrime();
-bool function();
-bool type();
-bool typePrime();
-bool params();
-bool paramsPrime();
-bool varDecl();
-bool stmtList();
-bool stmtListPrime();
-bool statement();
-bool ifStmt();
-bool ifStmtPrime();
-bool forStmt();
-bool returnStmt();
-bool printStmt();
-bool exprStmt();
-bool exprList();
-bool exprListPrime();
-bool expression();
-bool expressionPrime();
-bool orExpr();
-bool orExprPrime();
-bool andExpr();
-bool andExprPrime();
-bool eqExpr();
-bool eqExprPrime();
-bool relExpr();
-bool relExprPrime();
-bool expr();
-bool exprPrime();
-bool term();
-bool termPrime();
-bool unary();
-bool factor();
-bool factorPrime1();
-bool factorPrime2();
-
-bool eval()
-{
-    return false;
-}
-
-bool program()
+bool Parser::program()
 {
     if (check({INTEGER, BOOLEAN, CHAR, STRING, VOID}))
         return declaration() && programPrime();
     return false;
 }
 
-bool programPrime()
+bool Parser::programPrime()
 {
     if (check({INTEGER, BOOLEAN, CHAR, STRING, VOID}))
         return declaration() && programPrime();
@@ -86,14 +31,14 @@ bool programPrime()
     return false;
 }
 
-bool declaration()
+bool Parser::declaration()
 {
     if (check({INTEGER, BOOLEAN, CHAR, STRING, VOID}))
         return type() && terminal(IDENTIFIER) && declarationPrime();
     return false;
 }
 
-bool declarationPrime()
+bool Parser::declarationPrime()
 {
     if (check({PARENTHESIS_OPEN}))
         return function();
@@ -102,14 +47,14 @@ bool declarationPrime()
     return false;
 }
 
-bool function()
+bool Parser::function()
 {
     if (check({PARENTHESIS_OPEN}))
         return terminal(PARENTHESIS_OPEN) && params() && terminal(PARENTHESIS_CLOSE) && terminal(BRACE_OPEN) && stmtList() && terminal(BRACE_CLOSE);
     return false;
 }
 
-bool type()
+bool Parser::type()
 {
     if (check({INTEGER}))
         return terminal(INTEGER) && typePrime();
@@ -124,7 +69,7 @@ bool type()
     return false;
 }
 
-bool typePrime()
+bool Parser::typePrime()
 {
     if (check({BRACKET_OPEN}))
         return terminal(BRACKET_OPEN) && terminal(BRACKET_CLOSE) && typePrime();
@@ -133,7 +78,7 @@ bool typePrime()
     return false;
 }
 
-bool params()
+bool Parser::params()
 {
     if (check({INTEGER, BOOLEAN, CHAR, STRING, VOID}))
         return type() && terminal(IDENTIFIER) && paramsPrime();
@@ -142,7 +87,7 @@ bool params()
     return false;
 }
 
-bool paramsPrime()
+bool Parser::paramsPrime()
 {
     if (check({COMMA}))
         return terminal(COMMA) && params();
@@ -151,7 +96,7 @@ bool paramsPrime()
     return false;
 }
 
-bool varDecl()
+bool Parser::varDecl()
 {
     if (check({SEMICOLON}))
         return terminal(SEMICOLON);
@@ -160,14 +105,14 @@ bool varDecl()
     return false;
 }
 
-bool stmtList()
+bool Parser::stmtList()
 {
     if (check({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
         return statement() && stmtListPrime();
     return false;
 }
 
-bool stmtListPrime()
+bool Parser::stmtListPrime()
 {
     if (check({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
         return statement() && stmtListPrime();
@@ -176,7 +121,7 @@ bool stmtListPrime()
     return false;
 }
 
-bool statement()
+bool Parser::statement()
 {
     if (check({INTEGER, BOOLEAN, CHAR, STRING, VOID}))
         return type() && terminal(IDENTIFIER) && varDecl();
@@ -195,14 +140,14 @@ bool statement()
     return false;
 }
 
-bool ifStmt()
+bool Parser::ifStmt()
 {
     if (check({IF}))
         return terminal(IF) && terminal(PARENTHESIS_OPEN) && expression() && terminal(PARENTHESIS_CLOSE) && terminal(BRACE_OPEN) && statement() && terminal(BRACE_CLOSE) && ifStmtPrime();
     return false;
 }
 
-bool ifStmtPrime()
+bool Parser::ifStmtPrime()
 {
     if (check({ELSE}))
         terminal(ELSE) && terminal(BRACE_OPEN) && statement() && terminal(BRACE_CLOSE);
@@ -211,28 +156,28 @@ bool ifStmtPrime()
     return false;
 }
 
-bool forStmt()
+bool Parser::forStmt()
 {
     if (check({FOR}))
         return terminal(FOR) && terminal(PARENTHESIS_OPEN) && exprStmt() && expression() && terminal(SEMICOLON) && exprStmt() && terminal(PARENTHESIS_CLOSE) && statement();
     return false;
 }
 
-bool returnStmt()
+bool Parser::returnStmt()
 {
     if (check({RETURN}))
         return terminal(RETURN) && expression() && terminal(SEMICOLON);
     return false;
 }
 
-bool printStmt()
+bool Parser::printStmt()
 {
     if (check({PRINT}))
         return terminal(PRINT) && terminal(PARENTHESIS_OPEN) && exprList() && terminal(PARENTHESIS_CLOSE) && terminal(SEMICOLON);
     return false;
 }
 
-bool exprStmt()
+bool Parser::exprStmt()
 {
     if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
         return expression() && terminal(SEMICOLON);
@@ -241,14 +186,14 @@ bool exprStmt()
     return false;
 }
 
-bool exprList()
+bool Parser::exprList()
 {
     if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
         return expression() && exprListPrime();
     return false;
 }
 
-bool exprListPrime()
+bool Parser::exprListPrime()
 {
     if (check({COMMA}))
         return terminal(COMMA) && exprList();
@@ -257,14 +202,14 @@ bool exprListPrime()
     return false;
 }
 
-bool expression()
+bool Parser::expression()
 {
     if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
         return orExpr() && expressionPrime();
     return false;
 }
 
-bool expressionPrime()
+bool Parser::expressionPrime()
 {
     if (check({ASSIGN}))
         return terminal(ASSIGN) && orExpr();
@@ -273,14 +218,14 @@ bool expressionPrime()
     return false;
 }
 
-bool orExpr()
+bool Parser::orExpr()
 {
     if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
         return andExpr() && orExprPrime();
     return false;
 }
 
-bool orExprPrime()
+bool Parser::orExprPrime()
 {
     if (check({OR}))
         return terminal(OR) && andExpr() && orExprPrime();
@@ -289,14 +234,14 @@ bool orExprPrime()
     return false;
 }
 
-bool andExpr()
+bool Parser::andExpr()
 {
     if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
         return eqExpr() && andExprPrime();
     return false;
 }
 
-bool andExprPrime()
+bool Parser::andExprPrime()
 {
     if (check({AND}))
         return terminal(AND) && eqExpr() && andExprPrime();
@@ -305,14 +250,14 @@ bool andExprPrime()
     return false;
 }
 
-bool eqExpr()
+bool Parser::eqExpr()
 {
     if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
         return relExpr() && eqExprPrime();
     return false;
 }
 
-bool eqExprPrime()
+bool Parser::eqExprPrime()
 {
     if (check({EQUAL}))
         return terminal(EQUAL) && relExpr() && eqExprPrime();
@@ -323,14 +268,14 @@ bool eqExprPrime()
     return false;
 }
 
-bool relExpr()
+bool Parser::relExpr()
 {
     if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
         return expr() && relExprPrime();
     return false;
 }
 
-bool relExprPrime()
+bool Parser::relExprPrime()
 {
     if (check({LESS_THAN}))
         return terminal(LESS_THAN) && expr() && relExprPrime();
@@ -345,14 +290,14 @@ bool relExprPrime()
     return false;
 }
 
-bool expr()
+bool Parser::expr()
 {
     if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
         return term() && exprPrime();
     return false;
 }
 
-bool exprPrime()
+bool Parser::exprPrime()
 {
     if (check({PLUS}))
         return terminal(PLUS) && term() && exprPrime();
@@ -363,14 +308,14 @@ bool exprPrime()
     return false;
 }
 
-bool term()
+bool Parser::term()
 {
     if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
         return unary() && termPrime();
     return false;
 }
 
-bool termPrime()
+bool Parser::termPrime()
 {
     if (check({MULTIPLY}))
         return terminal(MULTIPLY) && unary() && termPrime();
@@ -383,7 +328,7 @@ bool termPrime()
     return false;
 }
 
-bool unary()
+bool Parser::unary()
 {
     if (check({NOT}))
         return terminal(NOT) && unary();
@@ -394,7 +339,7 @@ bool unary()
     return false;
 }
 
-bool factor()
+bool Parser::factor()
 {
     if (check({IDENTIFIER}))
         return terminal(IDENTIFIER) && factorPrime1() && factorPrime2();
@@ -413,7 +358,7 @@ bool factor()
     return false;
 }
 
-bool factorPrime1()
+bool Parser::factorPrime1()
 {
     if (check({PARENTHESIS_OPEN}))
         return terminal(PARENTHESIS_OPEN) && exprList() && terminal(PARENTHESIS_CLOSE);
@@ -422,7 +367,7 @@ bool factorPrime1()
     return false;
 }
 
-bool factorPrime2()
+bool Parser::factorPrime2()
 {
     if (check({BRACKET_OPEN}))
         return terminal(BRACE_OPEN) && expression() && terminal(BRACE_CLOSE) && factorPrime2();
@@ -431,11 +376,18 @@ bool factorPrime2()
     return false;
 }
 
-int main()
+bool Parser::parse(const std::vector<Token>& tokens)
 {
-    tokens = {INTEGER, IDENTIFIER, ASSIGN, NUMBER, SEMICOLON, NUMBER, PLUS, NUMBER, SEMICOLON, END_OF_FILE};
-    std::cout << program() << '\n';
-    tokens = {VOID, IDENTIFIER, PARENTHESIS_OPEN, INTEGER, IDENTIFIER, PARENTHESIS_CLOSE, BRACE_OPEN, NUMBER, ASSIGN, NUMBER, SEMICOLON, BRACE_CLOSE, END_OF_FILE};
     curr = 0;
-    std::cout << program() << '\n';
+    tokenPtr = &tokens;
+    return program();
 }
+
+// int main()
+// {
+//     tokens = {INTEGER, IDENTIFIER, ASSIGN, NUMBER, SEMICOLON, NUMBER, PLUS, NUMBER, SEMICOLON, END_OF_FILE};
+//     std::cout << program() << '\n';
+//     tokens = {VOID, IDENTIFIER, PARENTHESIS_OPEN, INTEGER, IDENTIFIER, PARENTHESIS_CLOSE, BRACE_OPEN, NUMBER, ASSIGN, NUMBER, SEMICOLON, BRACE_CLOSE, END_OF_FILE};
+//     curr = 0;
+//     std::cout << program() << '\n';
+// }

@@ -45,5 +45,13 @@ int main(int argc, char *argv[])
     }
     tokens.push_back(END_OF_FILE);
     
-    std::cout << "INFO SCAN - Completed with "<<s1.errorCounter<<" errors\n";
+    std::cout << "INFO SCAN - Completed with "<<s1.errorCounter<<" errors.\n";
+
+    Parser p1;
+
+    std::cout << "INFO PARSE - Start parsing...\n";
+
+    bool correct = p1.parse(tokens);
+
+    std::cout << "INFO PARSE - Completed: " << (correct ? "Valid" : "Invalid") << " program\n";
 }

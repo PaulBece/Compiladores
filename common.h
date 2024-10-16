@@ -1,3 +1,12 @@
+#ifndef COMMON_HEADER
+#define COMMON_HEADER
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <algorithm>
+
 enum Token {
     BRACKET_OPEN,       // [
     BRACKET_CLOSE,      // ]
@@ -47,3 +56,5 @@ enum Token {
     WHILE,              //while
     END_OF_FILE         //
 };
+
+#endif

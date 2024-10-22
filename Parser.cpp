@@ -169,7 +169,7 @@ bool Parser::ifStmtPrime()
 {
     // std::cout << "\tIFSTMTP " << (*tokenPtr)[curr] << '\n';
     if (check({ELSE}))
-        terminal(ELSE) && terminal(BRACE_OPEN) && statement() && terminal(BRACE_CLOSE);
+        terminal(ELSE) && terminal(BRACE_OPEN) && stmtList() && terminal(BRACE_CLOSE);
     if (check({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, BRACE_CLOSE, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
         return true;
     // std::cout << '\t' << "ISP " << (*tokenPtr)[curr] << '\n';

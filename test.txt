@@ -1,13 +1,27 @@
-###++&$!=[]
-18446744073709551615
-18446744073709551616
-"asdasdasdasdasdasfdrgerg
-"qwe",
-abc'
-'
-def while'' fgh
-hola$'a'rtrt
-//asdasdasdasdasdasfdrgerg
-++--\n 'we'
-integerboolean  
-integer boolean
+boolean isOdd(integer number){
+    return number%2;
+}
+
+boolean isEven(integer number){
+    return !number%2;
+}
+
+integer main(){
+    integer number = 19;
+    if (isEven(number)) {
+        if (!isOdd(number)){
+            if (number<=50){
+                number=88;
+                number=number/number;
+            }
+            else {
+                number=number*number;
+            }
+        }
+        else{
+            number=15;
+        }
+    }
+
+    return 0;
+}

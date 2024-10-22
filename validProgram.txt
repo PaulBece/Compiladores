@@ -39,6 +39,7 @@ integer main()
     if (myArray[0] != 'a' && !myEval(-3, 4))
     {
         integer i = 12;
+        integer j = 25;
     }
 
     string myStr = "Hello World";

@@ -160,7 +160,7 @@ bool Parser::ifStmt()
 {
     // std::cout << "\tIFSTMT " << (*tokenPtr)[curr] << '\n';
     if (check({IF}))
-        return terminal(IF) && terminal(PARENTHESIS_OPEN) && expression() && terminal(PARENTHESIS_CLOSE) && terminal(BRACE_OPEN) && statement() && terminal(BRACE_CLOSE) && ifStmtPrime();
+        return terminal(IF) && terminal(PARENTHESIS_OPEN) && expression() && terminal(PARENTHESIS_CLOSE) && terminal(BRACE_OPEN) && stmtList() && terminal(BRACE_CLOSE) && ifStmtPrime();
     // std::cout << '\t' << "IS " << (*tokenPtr)[curr] << '\n';
     return false;
 }

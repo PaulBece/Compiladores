@@ -41,9 +41,9 @@ Statement -> ExprStmt
 Statement -> PrintStmt
 Statement -> { StmtList }
 
-IfStmt -> if ( Expression ) { Statement } IfStmtPrime
+IfStmt -> if ( Expression ) { StmtList } IfStmtPrime
 
-IfStmtPrime -> else { Statement }
+IfStmtPrime -> else { StmtList }
 IfStmtPrime -> ϵ
 
 ForStmt -> for ( ExprStmt Expression ; ExprStmt ) Statement

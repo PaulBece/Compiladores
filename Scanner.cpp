@@ -6,10 +6,10 @@
         switch (token) {
             case BRACKET_OPEN:       return "BRACKET_OPEN";
             case BRACKET_CLOSE:      return "BRACKET_CLOSE";
-            case INC:                return "INC";
+            //case INC:                return "INC";
             case PARENTHESIS_OPEN:   return "PARENTHESIS_OPEN";
             case PARENTHESIS_CLOSE:  return "PARENTHESIS_CLOSE";
-            case DEC:                return "DEC";
+            //case DEC:                return "DEC";
             case MINUS:              return "MINUS";
             case PLUS:               return "PLUS";
             case NOT:                return "NOT";
@@ -102,25 +102,25 @@
             return;
         }
         if (c == '+') {
-            if (peekchar(pos) == '+') {
-                columnCounter++;
-                pos++;
-                std::cout << "DEBUG SCAN - " << getTokenName(INC) << " found at (" << lineCounter << ":" << columnCounter-1 << ")\n";
-                tokens.push_back(INC);
-                return;
-            }
+            // if (peekchar(pos) == '+') {
+            //     columnCounter++;
+            //     pos++;
+            //     std::cout << "DEBUG SCAN - " << getTokenName(INC) << " found at (" << lineCounter << ":" << columnCounter-1 << ")\n";
+            //     tokens.push_back(INC);
+            //     return;
+            // }
             std::cout << "DEBUG SCAN - " << getTokenName(PLUS) << " found at (" << lineCounter << ":" << columnCounter << ")\n";
             tokens.push_back(PLUS);
             return;
         }
         if (c == '-') {
-            if (peekchar(pos) == '-') {
-                columnCounter++;
-                pos++;
-                std::cout << "DEBUG SCAN - " << getTokenName(DEC) << " found at (" << lineCounter << ":" << columnCounter-1 << ")\n";
-                tokens.push_back(DEC);
-                return;
-            }
+            // if (peekchar(pos) == '-') {
+            //     columnCounter++;
+            //     pos++;
+            //     std::cout << "DEBUG SCAN - " << getTokenName(DEC) << " found at (" << lineCounter << ":" << columnCounter-1 << ")\n";
+            //     tokens.push_back(DEC);
+            //     return;
+            // }
             std::cout << "DEBUG SCAN - " << getTokenName(MINUS) << " found at (" << lineCounter << ":" << columnCounter << ")\n";
             tokens.push_back(MINUS);
             return;

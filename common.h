@@ -10,10 +10,10 @@
 enum Token {
     BRACKET_OPEN,       // [
     BRACKET_CLOSE,      // ]
-    INC,                // ++ (postfix increment)
+    //INC,                // ++ (postfix increment)
     PARENTHESIS_OPEN,   // (
     PARENTHESIS_CLOSE,  // )
-    DEC,                // -- (postfix decrement)
+    //DEC,                // -- (postfix decrement)
     MINUS,              // -
     PLUS,               // +
     NOT,                // !

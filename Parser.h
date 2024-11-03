@@ -4,6 +4,13 @@ class Parser
 {
     const std::vector<Token>* tokenPtr = nullptr;
     int curr = 0;
+    int errors = 0;
+
+    void noMatch(const std::vector<Token>& expected);
+    void logError(const std::vector<Token>& expected);
+    void logError();
+
+    void synchronize(const std::vector<Token>& follow);
 
     bool check(const std::vector<Token>& tokList);
     bool terminal(Token token);

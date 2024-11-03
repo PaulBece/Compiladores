@@ -20,15 +20,13 @@ integer main()
     }
     else
     {
-        
-                    myVariable = 0;
-                    12;
+        myVariable = 0;
+        12;
 
-                    for (i = 0; i < 4; i = i + 1;)
-                    {
-                        print(i, i*1, i*2, i*3, i*4);
-                    }
-            
+        for (i = 0; i < 4; i = i + 1;)
+        {
+            print(i, i*1, i*2, i*3, i*4);
+        }
     }
 
     char[] myArray;
@@ -38,6 +36,7 @@ integer main()
         integer j = 25;
     }
 
+    integer g = ;
     string myStr = "Hello World";
     print(myStr, "Fin del Programa\n");
 

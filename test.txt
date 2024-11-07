@@ -1,13 +1,16 @@
 boolean isOdd(integer number){
     return number%2;
 }
-
+"hola
 boolean isEven(integer number){
     return !number%2;
 }
-
+//
+string s1= "hola";
 integer main(){
     integer number = 19;
+    5--5;
+    number;
     if (isEven(number)) {
         if (!isOdd(number)){
             if (number<=50){
@@ -26,3 +29,4 @@ integer main(){
 
     return 0;
 }
+string s1= 985985

@@ -26,6 +26,8 @@ integer main(){
         }
     }
     print(number);
+    number = 5 - -5;
+    print(number);
 
     return 0;
 }

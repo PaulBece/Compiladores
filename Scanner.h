@@ -6,7 +6,7 @@ class Scanner{
     int columnCounter = 0;
     int errorCounter = 0;
 
-    std::string getTokenName(Token token) ;
+    //std::string getTokenName(Token token) ;
     inline char getchar(char* &pos) ;
 
     inline char peekchar(char* pos) ;

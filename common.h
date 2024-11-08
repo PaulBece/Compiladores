@@ -58,5 +58,57 @@ enum Token {
 
 };
 
+inline std::string getTokenName(Token token) {
+        switch (token) {
+            case BRACKET_OPEN:       return "BRACKET_OPEN";
+            case BRACKET_CLOSE:      return "BRACKET_CLOSE";
+            //case INC:                return "INC";
+            case PARENTHESIS_OPEN:   return "PARENTHESIS_OPEN";
+            case PARENTHESIS_CLOSE:  return "PARENTHESIS_CLOSE";
+            //case DEC:                return "DEC";
+            case MINUS:              return "MINUS";
+            case PLUS:               return "PLUS";
+            case NOT:                return "NOT";
+            case EXPONENT:           return "EXPONENT";
+            case MULTIPLY:           return "MULTIPLY";
+            case DIVIDE:             return "DIVIDE";
+            case MODULO:             return "MODULO";
+            case LESS_THAN:          return "LESS_THAN";
+            case LESS_EQUAL:         return "LESS_EQUAL";
+            case GREATER_THAN:       return "GREATER_THAN";
+            case GREATER_EQUAL:      return "GREATER_EQUAL";
+            case EQUAL:              return "EQUAL";
+            case NOT_EQUAL:          return "NOT_EQUAL";
+            case AND:                return "AND";
+            case OR:                 return "OR";
+            case ASSIGN:             return "ASSIGN";
+            case COLON:              return "COLON";
+            case BRACE_OPEN:         return "BRACE_OPEN";
+            case BRACE_CLOSE:        return "BRACE_CLOSE";
+            case COMMA:              return "COMMA";
+            case SEMICOLON:          return "SEMICOLON";
+            case STRING_VALUE:       return "STRING_VALUE";
+            case CHAR_VALUE:         return "CHAR_VALUE";
+            case NUMBER:             return "NUMBER";
+            case IDENTIFIER:         return "IDENTIFIER";
+            case INTEGER:            return "INTEGER";
+            case BOOLEAN:            return "BOOLEAN";
+            case CHAR:               return "CHAR";
+            case STRING:             return "STRING";
+            case FALSE:              return "FALSE";
+            case TRUE:               return "TRUE";
+            case ARRAY:              return "ARRAY";
+            case ELSE:               return "ELSE";
+            case FOR:                return "FOR";
+            case FUNCTION:           return "FUNCTION";
+            case IF:                 return "IF";
+            case PRINT:              return "PRINT";
+            case RETURN:             return "RETURN";
+            case VOID:               return "VOID";
+            case WHILE:              return "WHILE";
+            case END_OF_FILE:        return "END_OF_FILE";
+            default:                 return "UNKNOWN_TOKEN";
+        }
+    }
 
 #endif

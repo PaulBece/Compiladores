@@ -6,6 +6,7 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
+#include <variant>
 
 enum Token {
     BRACKET_OPEN,       // [
@@ -57,6 +58,152 @@ enum Token {
     END_OF_FILE         //
 
 };
+
+// struct NodeVisitor;
+
+
+// struct Node{
+//     virtual void accept(NodeVisitor &visitor)=0;
+// };
+
+// struct LiteralNode : Node {
+//     std::variant<int,char,std::string,bool> value;
+//     explicit LiteralNode (int val) : value(val){}
+//     explicit LiteralNode (char val) : value(val){}
+//     explicit LiteralNode (std::string val) : value(val){}
+//     explicit LiteralNode (bool val) : value(val){}
+//     void accept (NodeVisitor & visitor) override{
+//         visitor.visit(*this);
+//     }
+// };
+
+// struct BinaryOpNode : Node {
+//     Token op;
+//     Node* left;
+//     Node* right;
+//     BinaryOpNode(Token o, Node* l, Node* r) : op(o), left(l), right(r){}
+//     void accept (NodeVisitor & visitor) override{
+//         visitor.visit(*this);
+//     }
+// };
+
+// struct UnaryOpNode : Node {
+//     Token op;
+//     Node* down;
+//     UnaryOpNode(Token o, Node* d) : op(o), down(d){}
+//     void accept (NodeVisitor & visitor) override{
+//         visitor.visit(*this);
+//     }
+// };
+
+// struct VariableNode : Node {
+//     std::string name;
+//     VariableNode (std::string &n) : name(n){}
+//     void accept (NodeVisitor & visitor) override{
+//         visitor.visit(*this);
+//     }
+// };
+
+// struct VariableDeclaration : Node {
+//     Token type;
+//     Node* name;
+//     VariableDeclaration (Token t, Node* n) : type(t), name(n){}
+//     void accept (NodeVisitor & visitor) override{
+//         visitor.visit(*this);
+//     }
+// };
+
+// struct ForNode : Node {
+//     Node* initialization;
+//     Node* condition;
+//     Node* increment;
+//     Node* body;
+//     ForNode(Node* ini, Node* con, Node* inc, Node* bod) : initialization(ini), condition(con), increment(inc), body(bod){}
+//     void accept (NodeVisitor & visitor) override{
+//         visitor.visit(*this);
+//     }
+// };
+
+// struct WhileNode : Node {
+//     Node* condition;
+//     Node* body;
+//     WhileNode(Node* c,Node*b) : condition(c), body(b){}
+//     void accept (NodeVisitor & visitor) override{
+//         visitor.visit(*this);
+//     }
+// };
+
+// struct IfNode : Node {
+//     Node* condition;
+//     Node* body1;
+//     Node* body2;
+//     IfNode(Node* c, Node* b1, Node* b2) : condition(c), body1(b1), body2(b2){}
+//     void accept (NodeVisitor & visitor) override{
+//         visitor.visit(*this);
+//     }
+// };
+
+// struct FunctionNode : Node {
+//     std::string name;
+//     Token return_type;
+//     std::vector<Node*> arguments;
+//     FunctionNode(std::string &n, Token t, std::vector<Node*> args) : name(n), return_type(t), arguments(args){}
+//     void accept (NodeVisitor & visitor) override{
+//         visitor.visit(*this);
+//     }
+// };
+
+// struct NodeVisitor{
+//     virtual void visit(LiteralNode &node) =0;
+//     virtual void visit(BinaryOpNode &node) =0;
+//     virtual void visit(UnaryOpNode &node) =0;
+//     virtual void visit(VariableNode &node) =0;
+//     virtual void visit(VariableDeclaration &node) =0;
+//     virtual void visit(ForNode &node) =0;
+//     virtual void visit(WhileNode &node) =0;
+//     virtual void visit(IfNode &node) =0;
+//     virtual void visit(FunctionNode &node) =0;
+// };
+
+// struct Printer : NodeVisitor{
+//     void visit(LiteralNode &node) override {
+//         std::cout<<"Literal(";
+//         std::visit([](auto&& arg) {
+//             std::cout << arg;
+//         }, node.value);
+//         std::cout << ")";
+//     }
+//     void visit(BinaryOpNode &node) override {
+
+//     }
+//     void visit(UnaryOpNode &node) override {
+
+//     }
+//     void visit(VariableNode &node) override {
+
+//     }
+//     void visit(VariableDeclaration &node) override {
+
+//     }
+//     void visit(ForNode &node) override {
+
+//     }
+//     void visit(WhileNode &node) override {
+
+//     }
+//     void visit(IfNode &node) override {
+
+//     }
+//     void visit(FunctionNode &node) override {
+
+//     }
+// };
+
+
+
+
+
+
 
 inline std::string getTokenName(Token token) {
         switch (token) {

@@ -1,5 +1,59 @@
 #include "Parser.h"
 
+std::string getTokenName2(Token token) {
+        switch (token) {
+            case BRACKET_OPEN:       return "BRACKET_OPEN";
+            case BRACKET_CLOSE:      return "BRACKET_CLOSE";
+            //case INC:                return "INC";
+            case PARENTHESIS_OPEN:   return "PARENTHESIS_OPEN";
+            case PARENTHESIS_CLOSE:  return "PARENTHESIS_CLOSE";
+            //case DEC:                return "DEC";
+            case MINUS:              return "MINUS";
+            case PLUS:               return "PLUS";
+            case NOT:                return "NOT";
+            case EXPONENT:           return "EXPONENT";
+            case MULTIPLY:           return "MULTIPLY";
+            case DIVIDE:             return "DIVIDE";
+            case MODULO:             return "MODULO";
+            case LESS_THAN:          return "LESS_THAN";
+            case LESS_EQUAL:         return "LESS_EQUAL";
+            case GREATER_THAN:       return "GREATER_THAN";
+            case GREATER_EQUAL:      return "GREATER_EQUAL";
+            case EQUAL:              return "EQUAL";
+            case NOT_EQUAL:          return "NOT_EQUAL";
+            case AND:                return "AND";
+            case OR:                 return "OR";
+            case ASSIGN:             return "ASSIGN";
+            case COLON:              return "COLON";
+            case BRACE_OPEN:         return "BRACE_OPEN";
+            case BRACE_CLOSE:        return "BRACE_CLOSE";
+            case COMMA:              return "COMMA";
+            case SEMICOLON:          return "SEMICOLON";
+            case STRING_VALUE:       return "STRING_VALUE";
+            case CHAR_VALUE:         return "CHAR_VALUE";
+            case NUMBER:             return "NUMBER";
+            case IDENTIFIER:         return "IDENTIFIER";
+            case INTEGER:            return "INTEGER";
+            case BOOLEAN:            return "BOOLEAN";
+            case CHAR:               return "CHAR";
+            case STRING:             return "STRING";
+            case FALSE:              return "FALSE";
+            case TRUE:               return "TRUE";
+            case ARRAY:              return "ARRAY";
+            case ELSE:               return "ELSE";
+            case FOR:                return "FOR";
+            case FUNCTION:           return "FUNCTION";
+            case IF:                 return "IF";
+            case PRINT:              return "PRINT";
+            case RETURN:             return "RETURN";
+            case VOID:               return "VOID";
+            case WHILE:              return "WHILE";
+            case END_OF_FILE:        return "END_OF_FILE";
+            default:                 return "UNKNOWN_TOKEN";
+        }
+    }
+
+
 void Parser::noMatch(const std::vector<Token>& expected)
 {
     if (curr >= tokenPtr->size())
@@ -11,10 +65,13 @@ void Parser::noMatch(const std::vector<Token>& expected)
 
 void Parser::logError(const std::vector<Token>& expected)
 {
-    std::cout << "ERROR PARSER: Found " << (*tokenPtr)[curr] << ", expected: ";
+    if ((*valuesPtr)[curr].size()!=0)
+        std::cout << "ERROR PARSER: Found " << getTokenName2((*tokenPtr)[curr])<<" at ("<<(*positionPtr)[curr].first<<","<<(*positionPtr)[curr].second<<")" <<" with value "<<(*valuesPtr)[curr]<< ", expected: ";
+    else
+        std::cout << "ERROR PARSER: Found " << getTokenName2((*tokenPtr)[curr])<<" at ("<<(*positionPtr)[curr].first<<","<<(*positionPtr)[curr].second<<")" << ", expected: ";
     for (int i = 0; i < expected.size(); i++)
     {
-        std::cout << expected[i] << ((i == expected.size()-1) ? '\n' : ' ');
+        std::cout << getTokenName2(expected[i]) << ((i == expected.size()-1) ? '\n' : ' ');
     }
 }
 
@@ -28,7 +85,7 @@ void Parser::synchronize(const std::vector<Token> &follow)
     errors++;
     std::cout << "DEBUG PARSE - synching: ";
     for (auto tok : follow)
-        std::cout << tok << ' ';
+        std::cout << getTokenName2(tok) << ' ';
     std::cout << '\n';
     auto it = std::find(follow.begin(), follow.end(), (*tokenPtr)[curr]);
     while (curr < (*tokenPtr).size() && it == follow.end())
@@ -734,10 +791,12 @@ bool Parser::factorPrime2()
     return true;
 }
 
-bool Parser::parse(const std::vector<Token>& tokens)
+bool Parser::parse(const std::vector<Token>& tokens,const std::vector<std::pair<int,int>>& position,const std::vector<std::string>& values)
 {
     curr = 0;
     tokenPtr = &tokens;
+    positionPtr = &position;
+    valuesPtr = &values;
     errors = 0;
     try
     {

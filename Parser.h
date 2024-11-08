@@ -3,6 +3,8 @@
 class Parser
 {
     const std::vector<Token>* tokenPtr = nullptr;
+    const std::vector<std::pair<int,int>>* positionPtr = nullptr;
+    const std::vector<std::string>* valuesPtr = nullptr;
     int curr = 0;
     int errors = 0;
 
@@ -56,5 +58,5 @@ class Parser
     bool factorPrime2();
 
 public:
-    bool parse(const std::vector<Token>& tokens);
+    bool parse(const std::vector<Token>& tokens,const std::vector<std::pair<int,int>>& position,const std::vector<std::string>& values);
 };

@@ -11,6 +11,6 @@ class Scanner{
 
     inline char peekchar(char* pos) ;
 
-    void gettoken(char*& pos, std::vector< Token> &tokens, std::vector<std::string> &values, char* end) ;
+    void gettoken(char*& pos, std::vector< Token> &tokens, std::vector<std::string> &values,std::vector<std::pair<int,int>> &position, char* end) ;
 
 };

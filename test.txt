@@ -31,4 +31,5 @@ integer main(){
 
     return 0;
 }
-string s1= 985985
+string s1= 985985;
+asdwgersdg       

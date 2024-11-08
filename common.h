@@ -55,6 +55,8 @@ enum Token {
     VOID,               //void
     WHILE,              //while
     END_OF_FILE         //
+
 };
+
 
 #endif

@@ -63,10 +63,72 @@ struct Node
 {
     std::string display;
     std::vector<Node*> ptrs;
+    std::string nodetag;
     Node(const std::string type, const std::vector<Node*>& vec) :
         display(type), ptrs(vec) {}
     Node() {}
 };
+
+inline void rec_nodeTag(Node* n,std::ofstream& file, std::string &s){
+    // if (n->ptrs.empty()) {
+    //     std::cout<<"Vacio\n";
+    //     return;
+    // }
+    if (!n) return;
+    if (s.back()=='Z'){
+        s.push_back('A');
+    }
+    else{
+        s.back()++;
+    }
+    //std::cout<<"AQUI"<<s<<"\n";
+    n->nodetag=s;
+    if (n->display.back()=='\"'){
+        file << "    "<<s<<" [label="<<n->display<<"];\n";
+    }
+    else{
+        file << "    "<<s<<" [label="<<"\""<<n->display<<"\"];\n";
+    }
+    
+    for (int i=0;i<n->ptrs.size();i++){
+        if (!(n->ptrs[i])) continue;
+        rec_nodeTag(n->ptrs[i],file,s);
+    }
+}
+
+inline void rec_createDOT(Node* n,std::ofstream& file){
+    // if (n->ptrs.empty()) {
+    //     std::cout<<"Vacio\n";
+    //     return;
+    // }
+    if (!n) return;
+    for (int i=0;i<n->ptrs.size();i++){
+        if (!(n->ptrs[i])) continue;
+        file << "    "<<n->nodetag<<" -> "<<n->ptrs[i]->nodetag<<";\n";
+    }
+    for (int i=0;i<n->ptrs.size();i++){
+        if (!(n->ptrs[i])) continue;
+        rec_createDOT(n->ptrs[i],file);
+    }
+}
+
+inline void createDOT(Node* root){
+    std::ofstream file("graph.dot");
+    if (!file.is_open()) {
+        std::cerr << "Error opening file!" << std::endl;
+        //return 1;
+    }
+    std::string s;
+    s.push_back('A'-1);
+    // Write the DOT graph structure
+    file << "digraph G {\n";
+    rec_nodeTag(root,file,s);
+    rec_createDOT(root,file);
+    file << "}\n";
+    // Close the file stream
+    file.close();
+}
+
 
 // struct NodeVisitor;
 

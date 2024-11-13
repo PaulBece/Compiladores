@@ -54,5 +54,7 @@ int main(int argc, char *argv[])
 
     Node* correct = p1.parse(tokens,positions,values);
 
+    createDOT(correct);
+
     std::cout << "INFO PARSE - Completed: " << (correct ? "Valid" : "Invalid") << " program\n";
 }

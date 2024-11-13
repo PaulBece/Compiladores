@@ -571,7 +571,7 @@ Node* Parser::orExprPrime(Node* firstVal)
         if (check({OR}))
         {
             terminal(OR);
-            return new Node("||", {firstVal, orExprPrime(andExpr())});
+            return new Node("OR", {firstVal, orExprPrime(andExpr())});
         }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN}))
             return firstVal;
@@ -606,7 +606,7 @@ Node* Parser::andExprPrime(Node* firstVal)
         if (check({AND}))
         {
             terminal(AND);
-            return new Node("&&", {firstVal, andExprPrime(eqExpr())});
+            return new Node("AND", {firstVal, andExprPrime(eqExpr())});
         }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR}))
             return firstVal;

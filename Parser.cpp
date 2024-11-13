@@ -894,16 +894,18 @@ Node* Parser::factorPrime2(Node* firstVal)
     return nullptr;
 }
 
-bool Parser::parse(const std::vector<Token>& tokens,const std::vector<std::pair<int,int>>& position,const std::vector<std::string>& values)
+Node* Parser::parse(const std::vector<Token>& tokens,const std::vector<std::pair<int,int>>& position,const std::vector<std::string>& values)
 {
     curr = 0;
     tokenPtr = &tokens;
     positionPtr = &position;
     valuesPtr = &values;
     errors = 0;
+    Node* returnVal;
+    
     try
     {
-        program();
+        returnVal = program();
     }
     catch(char c)
     {
@@ -912,5 +914,8 @@ bool Parser::parse(const std::vector<Token>& tokens,const std::vector<std::pair<
 
     std::cout << "INFO PARSE - Completed with " << errors << " errors.\n";
 
-    return !errors;        
+    if (errors)
+        return nullptr;
+
+    return returnVal;  
 }

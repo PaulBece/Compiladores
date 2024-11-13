@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 
     std::cout << "INFO PARSE - Start parsing...\n";
 
-    bool correct = p1.parse(tokens,positions,values);
+    Node* correct = p1.parse(tokens,positions,values);
 
     std::cout << "INFO PARSE - Completed: " << (correct ? "Valid" : "Invalid") << " program\n";
 }

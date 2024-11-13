@@ -59,5 +59,5 @@ class Parser
     Node* factorPrime2(Node* firstVal);
 
 public:
-    bool parse(const std::vector<Token>& tokens,const std::vector<std::pair<int,int>>& position,const std::vector<std::string>& values);
+    Node* parse(const std::vector<Token>& tokens,const std::vector<std::pair<int,int>>& position,const std::vector<std::string>& values);
 };

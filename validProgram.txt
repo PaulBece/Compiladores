@@ -36,7 +36,7 @@ integer main()
         integer j = 25;
     }
 
-    integer g = ;
+    integer g = 12;
     string myStr = "Hello World";
     print(myStr, "Fin del Programa\n");
 

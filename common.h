@@ -59,6 +59,15 @@ enum Token {
 
 };
 
+struct Node
+{
+    std::string display;
+    std::vector<Node*> ptrs;
+    Node(const std::string type, const std::vector<Node*>& vec) :
+        display(type), ptrs(vec) {}
+    Node() {}
+};
+
 // struct NodeVisitor;
 
 

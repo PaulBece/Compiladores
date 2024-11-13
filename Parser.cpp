@@ -48,7 +48,7 @@ bool Parser::check(const std::vector<Token> &tokList)
     return curr < (*tokenPtr).size() && std::find(tokList.begin(), tokList.end(), (*tokenPtr)[curr]) != tokList.end();
 }
 
-bool Parser::terminal(Token token)
+void Parser::terminal(Token token)
 {
     if (curr >= tokenPtr->size())
     {
@@ -61,217 +61,279 @@ bool Parser::terminal(Token token)
         throw 1;
     }
     curr++;
-    return true;
 }
 
-bool Parser::program()
+void Parser::terminal(Token token, std::string& val)
+{
+    if (curr >= tokenPtr->size())
+    {
+        logError();
+        throw 1;
+    }
+    if ((*tokenPtr)[curr] != token)
+    {
+        logError({token});
+        throw 1;
+    }
+    val = (*valuesPtr)[curr];
+    curr++;
+}
+
+Node* Parser::program()
 {
     try
     {
         if (check({INTEGER, BOOLEAN, CHAR, STRING, VOID}))
-            return declaration() && programPrime();
+        {
+            std::vector<Node*> vec = {declaration()};
+            return programPrime(vec);
+        }
         noMatch({INTEGER, BOOLEAN, CHAR, STRING, VOID});
     }
     catch (int err)
     {
         synchronize({END_OF_FILE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::programPrime()
+Node* Parser::programPrime(std::vector<Node*>& prevVals)
 {
     try
     {
         if (check({INTEGER, BOOLEAN, CHAR, STRING, VOID}))
-            return declaration() && programPrime();
+        {
+            prevVals.push_back(declaration());
+            return programPrime(prevVals);
+        }
         if (check({END_OF_FILE}))
-            return true;
+            return new Node("PROGRAM", prevVals);
         noMatch({INTEGER, BOOLEAN, CHAR, STRING, VOID, END_OF_FILE});
     }
     catch (int err)
     {
         synchronize({END_OF_FILE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::declaration()
+Node* Parser::declaration()
 {
     try
     {
         if (check({INTEGER, BOOLEAN, CHAR, STRING, VOID}))
-            return type() && terminal(IDENTIFIER) && declarationPrime();
+        {
+            std::string id;
+            auto fp = type();
+            return declarationPrime(fp, new Node("ID", {new Node((terminal(IDENTIFIER, id), id), {})}));
+        }
         noMatch({INTEGER, BOOLEAN, CHAR, STRING, VOID});
     }
     catch (int err)
     {
         synchronize({INTEGER, BOOLEAN, CHAR, STRING, VOID, END_OF_FILE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::declarationPrime()
+Node* Parser::declarationPrime(Node* typeNode, Node* idNode)
 {
     try
     {
         if (check({PARENTHESIS_OPEN}))
-            return function();
+            return function(typeNode, idNode);
         if (check({SEMICOLON, ASSIGN}))
-            return varDecl();
+            return varDecl(typeNode, idNode);
         noMatch({PARENTHESIS_OPEN, SEMICOLON, ASSIGN});
     }
     catch (int err)
     {
         synchronize({INTEGER, BOOLEAN, CHAR, STRING, VOID, END_OF_FILE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::function()
+Node* Parser::function(Node* typeNode, Node* idNode)
 {
     try
     {
         if (check({PARENTHESIS_OPEN}))
-            return terminal(PARENTHESIS_OPEN) && params() && terminal(PARENTHESIS_CLOSE) && terminal(BRACE_OPEN) && stmtList() && terminal(BRACE_CLOSE);
+        {
+            terminal(PARENTHESIS_OPEN); auto c1 = params(); terminal(PARENTHESIS_CLOSE);
+            terminal(BRACE_OPEN); auto c2 = stmtList(); terminal(BRACE_CLOSE);
+            return new Node("FUNCTION", {typeNode, idNode, c1, c2});
+        }
         noMatch({PARENTHESIS_OPEN});
     }
     catch (int err)
     {
         synchronize({INTEGER, BOOLEAN, CHAR, STRING, VOID, END_OF_FILE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::type()
+Node* Parser::type()
 {
     try
     {
         if (check({INTEGER}))
-            return terminal(INTEGER) && typePrime();
+            return terminal(INTEGER), typePrime(new Node("ITYPE", {}));
         if (check({BOOLEAN}))
-            return terminal(BOOLEAN) && typePrime();
+            return terminal(BOOLEAN), typePrime(new Node("BTYPE", {}));
         if (check({CHAR}))
-            return terminal(CHAR) && typePrime();
+            return terminal(CHAR), typePrime(new Node("CTYPE", {}));
         if (check({STRING}))
-            return terminal(STRING) && typePrime();
+            return terminal(STRING), typePrime(new Node("STYPE", {}));
         if (check({VOID}))
-            return terminal(VOID) && typePrime();
+            return terminal(VOID), typePrime(new Node("VTYPE", {}));
         noMatch({INTEGER, BOOLEAN, CHAR, STRING, VOID});
     }
     catch (int err)
     {
         synchronize({IDENTIFIER});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::typePrime()
+Node* Parser::typePrime(Node* typeNode, int cnt)
 {
     try
     {
         if (check({BRACKET_OPEN}))
-            return terminal(BRACKET_OPEN) && terminal(BRACKET_CLOSE) && typePrime();
+            return terminal(BRACKET_OPEN), terminal(BRACKET_CLOSE), typePrime(typeNode, cnt+1);
         if (check({IDENTIFIER}))
-            return true;
+        {
+            if (cnt)
+                return new Node("ARRAY", {typeNode, new Node("DIMENSIONS", {new Node(std::to_string(cnt), {})})});
+            return typeNode;
+        }
         noMatch({BRACKET_OPEN, IDENTIFIER});
     }
     catch (int err)
     {
         synchronize({IDENTIFIER});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::params()
+Node* Parser::params()
 {
     try
     {
         if (check({INTEGER, BOOLEAN, CHAR, STRING, VOID}))
-            return type() && terminal(IDENTIFIER) && paramsPrime();
+        {
+            std::string id;
+            auto curr = new Node("PARAMETER", {type(), new Node("ID", {new Node((terminal(IDENTIFIER, id), id), {})})});
+            return paramsPrime(curr);
+        }
         if (check({PARENTHESIS_CLOSE}))
-            return true;
+            return nullptr;
         noMatch({INTEGER, BOOLEAN, CHAR, STRING, VOID, PARENTHESIS_CLOSE});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::paramsPrime()
+Node* Parser::paramsPrime(Node* firstVal)
 {
     try
     {
         if (check({COMMA}))
-            return terminal(COMMA) && params();
+        {
+            terminal(COMMA);
+            Node* curr = params();
+            std::vector<Node*> vec = {firstVal};
+            if (curr && curr->display == "PARAMETERLIST")
+                vec.insert(vec.end(), curr->ptrs.begin(), curr->ptrs.end());
+            if (curr)
+                delete curr;
+            return new Node("PARAMETERLIST", vec);
+        }
         if (check({PARENTHESIS_CLOSE}))
-            return true;
+            return firstVal;
         noMatch({COMMA, PARENTHESIS_CLOSE});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::varDecl()
+Node* Parser::varDecl(Node* typeNode, Node* idNode)
 {
     try
     {
         if (check({SEMICOLON}))
-            return terminal(SEMICOLON);
+        {
+            terminal(SEMICOLON);
+            return new Node("VARDECL", {typeNode, idNode, nullptr});
+        }
         if (check({ASSIGN}))
-            return terminal(ASSIGN) && expression() && terminal(SEMICOLON);
+        {
+            terminal(ASSIGN); auto curr = expression(); terminal(SEMICOLON);
+            return new Node("VARDECL", {typeNode, idNode, curr});
+        }
         noMatch({SEMICOLON, ASSIGN});
     }
     catch (int err)
     {
         synchronize({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, BRACE_CLOSE, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE, END_OF_FILE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::stmtList()
+Node* Parser::stmtList()
 {
     try
     {
         if (check({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
-            return statement() && stmtListPrime();
+        {
+            std::vector<Node*> vec = {statement()};
+            return stmtListPrime(vec);
+        }
         noMatch({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
     catch (int err)
     {
         synchronize({BRACE_CLOSE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::stmtListPrime()
+Node* Parser::stmtListPrime(std::vector<Node*>& prevVals)
 {
     try
     {
         if (check({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
-            return statement() && stmtListPrime();
+        {
+            prevVals.push_back(statement());
+            return stmtListPrime(prevVals);
+        }
         if (check({BRACE_CLOSE}))
-            return true;
+            return new Node("STMTLIST", prevVals);
         noMatch({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE, BRACE_CLOSE});
     }
     catch (int err)
     {
         synchronize({BRACE_CLOSE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::statement()
+Node* Parser::statement()
 {
     try
     {
         if (check({INTEGER, BOOLEAN, CHAR, STRING, VOID}))
-            return type() && terminal(IDENTIFIER) && varDecl();
+        {
+            std::string id;
+            auto fp = type();
+            return varDecl(fp, new Node("ID", {new Node((terminal(IDENTIFIER, id), id), {})}));
+        }
         if (check({IF}))
             return ifStmt();
         if (check({FOR}))
@@ -283,388 +345,469 @@ bool Parser::statement()
         if (check({PRINT}))
             return printStmt();
         if (check({BRACE_OPEN}))
-            return terminal(BRACE_OPEN) && stmtList() && terminal(BRACE_CLOSE);
+        {
+            terminal(BRACE_OPEN); auto curr = stmtList(); terminal(BRACE_CLOSE);
+            return curr;
+        }
         noMatch({INTEGER, BOOLEAN, CHAR, STRING, VOID, IF, FOR, RETURN, IDENTIFIER, PARENTHESIS_OPEN, SEMICOLON, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE, PRINT, BRACE_OPEN});
     }
     catch (int err)
     {
         synchronize({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, BRACE_CLOSE, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::ifStmt()
+Node* Parser::ifStmt()
 {
     try
     {
         if (check({IF}))
-            return terminal(IF) && terminal(PARENTHESIS_OPEN) && expression() && terminal(PARENTHESIS_CLOSE) && terminal(BRACE_OPEN) && stmtList() && terminal(BRACE_CLOSE) && ifStmtPrime();
+        {
+            terminal(IF);
+            return new Node("IF", {(terminal(PARENTHESIS_OPEN), expression()), (terminal(PARENTHESIS_CLOSE), terminal(BRACE_OPEN), stmtList()), (terminal(BRACE_CLOSE), ifStmtPrime())});
+        }
         noMatch({IF});
     }
     catch (int err)
     {
         synchronize({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, BRACE_CLOSE, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::ifStmtPrime()
+Node* Parser::ifStmtPrime()
 {
     try
     {
         if (check({ELSE}))
-            terminal(ELSE) && terminal(BRACE_OPEN) && stmtList() && terminal(BRACE_CLOSE);
+        {
+            terminal(ELSE), terminal(BRACE_OPEN); auto curr = stmtList(); terminal(BRACE_CLOSE);
+            return new Node("ELSE", {curr});
+        }
         if (check({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, BRACE_CLOSE, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
-            return true;
+            return nullptr;
         noMatch({ELSE, IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, BRACE_CLOSE, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
     catch (int err)
     {
         synchronize({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, BRACE_CLOSE, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::forStmt()
+Node* Parser::forStmt()
 {
     try
     {
         if (check({FOR}))
-            return terminal(FOR) && terminal(PARENTHESIS_OPEN) && exprStmt() && expression() && terminal(SEMICOLON) && exprStmt() && terminal(PARENTHESIS_CLOSE) && statement();
+        {
+            terminal(FOR);
+            return new Node("FOR", {(terminal(PARENTHESIS_OPEN), exprStmt()), expression(), (terminal(SEMICOLON), exprStmt()), (terminal(PARENTHESIS_CLOSE), statement())});
+        }
         noMatch({FOR});
     }
     catch (int err)
     {
         synchronize({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, BRACE_CLOSE, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::returnStmt()
+Node* Parser::returnStmt()
 {
     try
     {
         if (check({RETURN}))
-            return terminal(RETURN) && expression() && terminal(SEMICOLON);
+        {
+            terminal(RETURN); auto curr = expression(); terminal(SEMICOLON);
+            return new Node("RETURN", {curr});
+        }
         noMatch({RETURN});
     }
     catch (int err)
     {
         synchronize({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, BRACE_CLOSE, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::printStmt()
+Node* Parser::printStmt()
 {
     try 
     {
         if (check({PRINT}))
-            return terminal(PRINT) && terminal(PARENTHESIS_OPEN) && exprList() && terminal(PARENTHESIS_CLOSE) && terminal(SEMICOLON);
+        {
+            terminal(PRINT), terminal(PARENTHESIS_OPEN); auto curr = exprList(); terminal(PARENTHESIS_CLOSE), terminal(SEMICOLON);
+            return new Node("PRINT", {curr});
+        }
         noMatch({PRINT});
     }
     catch (int err)
     {
         synchronize({IDENTIFIER, PARENTHESIS_OPEN, BRACE_OPEN, BRACE_CLOSE, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::exprStmt()
+Node* Parser::exprStmt()
 {
     try
     {
         if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
-            return expression() && terminal(SEMICOLON);
+        {
+            auto curr = expression(); terminal(SEMICOLON);
+            return curr;
+        }
         if (check({SEMICOLON}));
-            return terminal(SEMICOLON);
+        {
+            terminal(SEMICOLON);
+            return nullptr;
+        }
         noMatch({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE, SEMICOLON});
     }
     catch (int err)
     {
         synchronize({IDENTIFIER, PARENTHESIS_OPEN, PARENTHESIS_CLOSE, BRACE_OPEN, BRACE_CLOSE, INTEGER, BOOLEAN, CHAR, STRING, VOID, SEMICOLON, IF, FOR, RETURN, PRINT, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::exprList()
+Node* Parser::exprList()
 {
     try
     {
         if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
-            return expression() && exprListPrime();
+            return exprListPrime(expression());
         noMatch({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::exprListPrime()
+Node* Parser::exprListPrime(Node* firstVal)
 {
     try
     {
         if (check({COMMA}))
-            return terminal(COMMA) && exprList();
+        {
+            terminal(COMMA);
+            Node* curr = exprList();
+            std::vector<Node*> vec = {firstVal};
+            if (curr && curr->display == "EXPRLIST")
+                vec.insert(vec.end(), curr->ptrs.begin(), curr->ptrs.end());
+            if (curr)
+                delete curr;
+            return new Node("EXPRLIST", vec);
+        }
         if (check({PARENTHESIS_CLOSE}))
-            return true;
+            return firstVal;
         noMatch({COMMA, PARENTHESIS_CLOSE});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE});        
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::expression()
+Node* Parser::expression()
 {
     try
     {
         if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
-            return orExpr() && expressionPrime();
+            return expressionPrime(orExpr());
         noMatch({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::expressionPrime()
+Node* Parser::expressionPrime(Node* firstVal)
 {
     try
     {
         if (check({ASSIGN}))
-            return terminal(ASSIGN) && orExpr();
+        {
+            terminal(ASSIGN);
+            return new Node("=", {firstVal, orExpr()});
+        }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON}))
-            return true;
+            return firstVal;
         noMatch({ASSIGN, PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::orExpr()
+Node* Parser::orExpr()
 {
     try
     {
         if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
-            return andExpr() && orExprPrime();
+            return orExprPrime(andExpr());
         noMatch({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::orExprPrime()
+Node* Parser::orExprPrime(Node* firstVal)
 {
     try
     {
         if (check({OR}))
-            return terminal(OR) && andExpr() && orExprPrime();
+        {
+            terminal(OR);
+            return new Node("||", {firstVal, orExprPrime(andExpr())});
+        }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN}))
-            return true;
+            return firstVal;
         noMatch({OR, PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::andExpr()
+Node* Parser::andExpr()
 {
     try
     {
         if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
-            return eqExpr() && andExprPrime();
+            return andExprPrime(eqExpr());
         noMatch({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::andExprPrime()
+Node* Parser::andExprPrime(Node* firstVal)
 {
     try
     {
         if (check({AND}))
-            return terminal(AND) && eqExpr() && andExprPrime();
+        {
+            terminal(AND);
+            return new Node("&&", {firstVal, andExprPrime(eqExpr())});
+        }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR}))
-            return true;
+            return firstVal;
         noMatch({AND, PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::eqExpr()
+Node* Parser::eqExpr()
 {
     try
     {
         if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
-            return relExpr() && eqExprPrime();
+            return eqExprPrime(relExpr());
         noMatch({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::eqExprPrime()
+Node* Parser::eqExprPrime(Node* firstVal)
 {
     try
     {
         if (check({EQUAL}))
-            return terminal(EQUAL) && relExpr() && eqExprPrime();
+        {
+            terminal(EQUAL);
+            return new Node("==", {firstVal, eqExprPrime(relExpr())});
+        }
         if (check({NOT_EQUAL}))
-            return terminal(NOT_EQUAL) && relExpr() && eqExprPrime();
+        {
+            terminal(NOT_EQUAL);
+            return new Node("!=", {firstVal, eqExprPrime(relExpr())});
+        }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND}))
-            return true;
+            return firstVal;
         noMatch({EQUAL, NOT_EQUAL, PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::relExpr()
+Node* Parser::relExpr()
 {
     try
     {
         if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
-            return expr() && relExprPrime();
+            return relExprPrime(expr());
         noMatch({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::relExprPrime()
+Node* Parser::relExprPrime(Node* firstVal)
 {
     try
     {
         if (check({LESS_THAN}))
-            return terminal(LESS_THAN) && expr() && relExprPrime();
+        {
+            terminal(LESS_THAN);
+            return new Node("<", {firstVal, relExprPrime(expr())});
+        }
         if (check({GREATER_THAN}))
-            return terminal(GREATER_THAN) && expr() && relExprPrime();
+        {
+            terminal(GREATER_THAN);
+            return new Node(">", {firstVal, relExprPrime(expr())});
+        }
         if (check({LESS_EQUAL}))
-            return terminal(LESS_EQUAL) && expr() && relExprPrime();
+        {
+            terminal(LESS_EQUAL);
+            return new Node("<=", {firstVal, relExprPrime(expr())});
+        }
         if (check({GREATER_EQUAL}))
-            return terminal(GREATER_EQUAL) && expr() && relExprPrime();
+        {
+            terminal(GREATER_EQUAL);
+            return new Node(">=", {firstVal, relExprPrime(expr())});
+        }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL}))
-            return true;
+            return firstVal;
         noMatch({LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::expr()
+Node* Parser::expr()
 {
     try
     {
         if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
-            return term() && exprPrime();
+            return exprPrime(term());
         noMatch({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::exprPrime()
+Node* Parser::exprPrime(Node* firstVal)
 {
     try
     {
         if (check({PLUS}))
-            return terminal(PLUS) && term() && exprPrime();
+        {
+            terminal(PLUS);
+            return new Node("+", {firstVal, exprPrime(term())});
+        }
         if (check({MINUS}))
-            return terminal(MINUS) && term() && exprPrime();
+        {
+            terminal(MINUS);
+            return new Node("-", {firstVal, exprPrime(term())});
+        }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL}))
-            return true;
+            return firstVal;
         noMatch({PLUS, MINUS, PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::term()
+Node* Parser::term()
 {
     try
     {
         if (check({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
-            return unary() && termPrime();
+            return termPrime(unary());
         noMatch({IDENTIFIER, PARENTHESIS_OPEN, MINUS, NOT, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::termPrime()
+Node* Parser::termPrime(Node* firstVal)
 {
     try
     {
         if (check({MULTIPLY}))
-            return terminal(MULTIPLY) && unary() && termPrime();
+        {
+            terminal(MULTIPLY);
+            return new Node("*", {firstVal, termPrime(unary())});
+        }
         if (check({DIVIDE}))
-            return terminal(DIVIDE) && unary() && termPrime();
+        {
+            terminal(DIVIDE);
+            return new Node("/", {firstVal, termPrime(unary())});
+        }
         if (check({MODULO}))
-            return terminal(MODULO) && unary() && termPrime();
+        {
+            terminal(MODULO);
+            return new Node("%", {firstVal, termPrime(unary())});
+        }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS}))
-            return true;
+            return firstVal;
         noMatch({MULTIPLY, DIVIDE, MODULO, PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::unary()
+Node* Parser::unary()
 {
     try
     {
         if (check({NOT}))
-            return terminal(NOT) && unary();
+        {
+            terminal(NOT);
+            return new Node("!", {unary()});
+        }
         if (check({MINUS}))
-            return terminal(MINUS) && unary();
+        {
+            terminal(MINUS);
+            return new Node("-", {unary()});
+        }
         if (check({IDENTIFIER, PARENTHESIS_OPEN, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
             return factor();
         noMatch({NOT, MINUS, IDENTIFIER, PARENTHESIS_OPEN, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE});
@@ -673,68 +816,82 @@ bool Parser::unary()
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::factor()
+Node* Parser::factor()
 {
     try
     {
+        std::string lit;
         if (check({IDENTIFIER}))
-            return terminal(IDENTIFIER) && factorPrime1() && factorPrime2();
+        {
+            std::string id;
+            auto curr = new Node("ID", {new Node((terminal(IDENTIFIER, id), id), {})});
+            return factorPrime2(factorPrime1(curr));
+        }
         if (check({NUMBER}))
-            return terminal(NUMBER) && factorPrime2();
+            return factorPrime2(new Node("ILITERAL", {new Node((terminal(NUMBER, lit), lit), {})}));
         if (check({CHAR_VALUE}))
-            return terminal(CHAR_VALUE) && factorPrime2();
+            return factorPrime2(new Node("CLITERAL", {new Node((terminal(CHAR_VALUE, lit), lit), {})}));
         if (check({STRING_VALUE}))
-            return terminal(STRING_VALUE) && factorPrime2();
+            return factorPrime2(new Node("SLITERAL", {new Node((terminal(STRING_VALUE, lit), lit), {})}));
         if (check({TRUE}))
-            return terminal(TRUE) && factorPrime2();
+            return factorPrime2(new Node("BLITERAL", {new Node((terminal(TRUE), "True"), {})}));
         if (check({FALSE}))
-            return terminal(FALSE) && factorPrime2();
+            return factorPrime2(new Node("BLITERAL", {new Node((terminal(FALSE), "False"), {})}));
         if (check({PARENTHESIS_OPEN}))
-            return terminal(PARENTHESIS_OPEN) && expression() && terminal(PARENTHESIS_CLOSE) && factorPrime2();
+        {
+            terminal(PARENTHESIS_OPEN); auto curr = expression(); terminal(PARENTHESIS_CLOSE);
+            return factorPrime2(curr);
+        }
         noMatch({IDENTIFIER, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE, PARENTHESIS_OPEN});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::factorPrime1()
+Node* Parser::factorPrime1(Node* firstVal)
 {
     try
     {
         if (check({PARENTHESIS_OPEN}))
-            return terminal(PARENTHESIS_OPEN) && exprList() && terminal(PARENTHESIS_CLOSE);
+        {
+            terminal(PARENTHESIS_OPEN); auto curr = exprList(); terminal(PARENTHESIS_CLOSE);
+            return new Node("FUNCTIONCALL", {firstVal, curr});
+        }
         if (check({PARENTHESIS_CLOSE, BRACKET_OPEN, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO}))
-            return true;
+            return firstVal;
         noMatch({PARENTHESIS_OPEN, PARENTHESIS_CLOSE, BRACKET_OPEN, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_OPEN, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO});
     }
-    return true;
+    return nullptr;
 }
 
-bool Parser::factorPrime2()
+Node* Parser::factorPrime2(Node* firstVal)
 {
     try
     {
         if (check({BRACKET_OPEN}))
-            return terminal(BRACKET_OPEN) && expression() && terminal(BRACKET_CLOSE) && factorPrime2();
+        {
+            terminal(BRACKET_OPEN); auto curr = expression(); terminal(BRACKET_CLOSE);
+            return factorPrime2(new Node("ACCESS", {firstVal, curr}));
+        }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO}))
-            return true;
+            return firstVal;
         noMatch({BRACKET_OPEN, PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO});
     }
     catch (int err)
     {
         synchronize({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS, MULTIPLY, DIVIDE, MODULO});
     }
-    return true;
+    return nullptr;
 }
 
 bool Parser::parse(const std::vector<Token>& tokens,const std::vector<std::pair<int,int>>& position,const std::vector<std::string>& values)

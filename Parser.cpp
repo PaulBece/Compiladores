@@ -253,7 +253,7 @@ Node* Parser::paramsPrime(Node* firstVal)
             return new Node("PARAMETERLIST", vec);
         }
         if (check({PARENTHESIS_CLOSE}))
-            return firstVal;
+            return new Node("PARAMETERLIST", {firstVal});
         noMatch({COMMA, PARENTHESIS_CLOSE});
     }
     catch (int err)
@@ -504,7 +504,7 @@ Node* Parser::exprListPrime(Node* firstVal)
             return new Node("EXPRLIST", vec);
         }
         if (check({PARENTHESIS_CLOSE}))
-            return firstVal;
+            return new Node("EXPRLIST", {firstVal});
         noMatch({COMMA, PARENTHESIS_CLOSE});
     }
     catch (int err)
@@ -571,7 +571,7 @@ Node* Parser::orExprPrime(Node* firstVal)
         if (check({OR}))
         {
             terminal(OR);
-            return new Node("OR", {firstVal, orExprPrime(andExpr())});
+            return orExprPrime(new Node("OR", {firstVal, andExpr()}));
         }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN}))
             return firstVal;
@@ -606,7 +606,7 @@ Node* Parser::andExprPrime(Node* firstVal)
         if (check({AND}))
         {
             terminal(AND);
-            return new Node("AND", {firstVal, andExprPrime(eqExpr())});
+            return andExprPrime(new Node("AND", {firstVal, eqExpr()}));
         }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR}))
             return firstVal;
@@ -641,12 +641,12 @@ Node* Parser::eqExprPrime(Node* firstVal)
         if (check({EQUAL}))
         {
             terminal(EQUAL);
-            return new Node("==", {firstVal, eqExprPrime(relExpr())});
+            return eqExprPrime(new Node("==", {firstVal, relExpr()}));
         }
         if (check({NOT_EQUAL}))
         {
             terminal(NOT_EQUAL);
-            return new Node("!=", {firstVal, eqExprPrime(relExpr())});
+            return eqExprPrime(new Node("!=", {firstVal, relExpr()}));
         }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND}))
             return firstVal;
@@ -681,22 +681,22 @@ Node* Parser::relExprPrime(Node* firstVal)
         if (check({LESS_THAN}))
         {
             terminal(LESS_THAN);
-            return new Node("<", {firstVal, relExprPrime(expr())});
+            return relExprPrime(new Node("<", {firstVal, expr()}));
         }
         if (check({GREATER_THAN}))
         {
             terminal(GREATER_THAN);
-            return new Node(">", {firstVal, relExprPrime(expr())});
+            return relExprPrime(new Node(">", {firstVal, expr()}));
         }
         if (check({LESS_EQUAL}))
         {
             terminal(LESS_EQUAL);
-            return new Node("<=", {firstVal, relExprPrime(expr())});
+            return relExprPrime(new Node("<=", {firstVal, expr()}));
         }
         if (check({GREATER_EQUAL}))
         {
             terminal(GREATER_EQUAL);
-            return new Node(">=", {firstVal, relExprPrime(expr())});
+            return relExprPrime(new Node(">=", {firstVal, expr()}));
         }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL}))
             return firstVal;
@@ -731,12 +731,12 @@ Node* Parser::exprPrime(Node* firstVal)
         if (check({PLUS}))
         {
             terminal(PLUS);
-            return new Node("+", {firstVal, exprPrime(term())});
+            return exprPrime(new Node("+", {firstVal, term()}));
         }
         if (check({MINUS}))
         {
             terminal(MINUS);
-            return new Node("-", {firstVal, exprPrime(term())});
+            return exprPrime(new Node("-", {firstVal, term()}));
         }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL}))
             return firstVal;
@@ -771,17 +771,17 @@ Node* Parser::termPrime(Node* firstVal)
         if (check({MULTIPLY}))
         {
             terminal(MULTIPLY);
-            return new Node("*", {firstVal, termPrime(unary())});
+            return termPrime(new Node("*", {firstVal, unary()}));
         }
         if (check({DIVIDE}))
         {
             terminal(DIVIDE);
-            return new Node("/", {firstVal, termPrime(unary())});
+            return termPrime(new Node("/", {firstVal, unary()}));
         }
         if (check({MODULO}))
         {
             terminal(MODULO);
-            return new Node("%", {firstVal, termPrime(unary())});
+            return termPrime(new Node("%", {firstVal, unary()}));
         }
         if (check({PARENTHESIS_CLOSE, BRACKET_CLOSE, COMMA, SEMICOLON, ASSIGN, OR, AND, EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL, PLUS, MINUS}))
             return firstVal;
@@ -801,12 +801,12 @@ Node* Parser::unary()
         if (check({NOT}))
         {
             terminal(NOT);
-            return new Node("!", {unary()});
+            return new Node("NOT", {unary()});
         }
         if (check({MINUS}))
         {
             terminal(MINUS);
-            return new Node("-", {unary()});
+            return new Node("NEG", {unary()});
         }
         if (check({IDENTIFIER, PARENTHESIS_OPEN, NUMBER, CHAR_VALUE, STRING_VALUE, TRUE, FALSE}))
             return factor();

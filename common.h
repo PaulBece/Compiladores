@@ -76,10 +76,18 @@ struct Node
     
 };
 
+struct Type{
+    std::string type;
+    int ndim;
+    Type(std::string type, int ndim=0) : type(type), ndim(ndim) {}
+    Type() {}
+    bool is_array() {return ndim;}
+
+};
+
 struct TO_CHECK{
-    std::unordered_map<std::string,void(*)(Node*n)> to_check;
-    std::unordered_map<std::string,std::string> ids;
-    std::unordered_map<std::string,std::pair<std::string,int>> arrays;
+    std::unordered_map<std::string,Type(*)(Node*n)> to_check;
+    std::vector<std::unordered_map<std::string,Type>> ids;
     TO_CHECK(){
         to_check.emplace("VARDECL",&VARDECL);
         to_check.emplace("+",&addition);
@@ -99,90 +107,272 @@ struct TO_CHECK{
         to_check.emplace("ACCESS",&ACCESS);
         to_check.emplace("AND",&AND);
         to_check.emplace("OR",&OR);
+        to_check.emplace("FUNCTION",&FUNCTION);
+        to_check.emplace("STMTLIST",&STMTLIST);
+        to_check.emplace("PROGRAM",&PROGRAM);
+        to_check.emplace("RETURN",&RETURN);
+        to_check.emplace("ID",&ID);
     }
-    void id_types(Node* n){
+
+    void check(Node* n){
         if (!n) return;
-        if (n->display=="VARDECL"){
-            if (n->ptrs[0]->display=="ARRAY")
-            ids.emplace(n->ptrs[1]->ptrs[0]->display,n->ptrs[0]->display);
+        auto aux =to_check.find(n->display);
+        if (aux!=to_check.end()){
+            aux->second(n);
         }
-        for (int i=0;i<n->ptrs.size();i++){
-            id_types(n->ptrs[i]);
+        else for (int i=0;i<n->ptrs.size();i++){
+            check(n->ptrs[i]);
         }
     }
 
-
-    void AND(Node* n){
-    
-    }
-    void OR(Node* n){
-    
-    }
-    void VARDECL(Node* n){
-    
-    }
-    void ACCESS(Node* n){
-    
-    }
-    void NOT(Node* n){
-        
-    }
-    void NEG(Node* n){
-        if (n->ptrs[0]->display!="ILITERAL"){
+    Type FUNCTION(Node*n){
+        Type t (n->ptrs[0]->display);
+        if (t.type=="ARRAY") {
+            t.ndim = stoi(n->ptrs[0]->ptrs[1]->ptrs[0]->display);
+            t.type=n->ptrs[0]->ptrs[0]->display;
+        }
+        if (!ids.back().emplace(n->ptrs[1]->ptrs[0]->display,t).second){
             //ERROR
         }
-        if (n->ptrs[0]->display!="ILITERAL"){
-
+        else {
+            std::unordered_map<std::string,Type> id;
+            ids.push_back(id);
+            check(n->ptrs[3]);
+            ids.pop_back();
+            return t;
         }
     }
-    void assign(Node* n){
+    Type STMTLIST(Node*n){
+        std::unordered_map<std::string,Type> id;
+        ids.push_back(id);
+        for (int i=0;i<n->ptrs.size();i++){
+            check(n->ptrs[i]);
+        }
+        ids.pop_back();
+        return Type("ITYPE");
+    }
+    Type PROGRAM(Node*n){
+        std::unordered_map<std::string,Type> id;
+        ids.push_back(id);
+        for (int i=0;i<n->ptrs.size();i++){
+            check(n->ptrs[i]);
+        }
+        ids.pop_back();
+        return Type("ITYPE");
+    }
+
+    Type AND(Node* n){
+        Type left,right;
+        auto aux1 =to_check.find(n->ptrs[0]->display);
+        auto aux2 =to_check.find(n->ptrs[1]->display);
+        if (aux1!=to_check.end()){
+            left=aux1->second(n);
+        }
+        if (aux2!=to_check.end()){
+            right=aux2->second(n);
+        }
+        if (left.type=="BTYPE" && right.type=="BTYPE"){
+            return Type("BTYPE");
+        }
+        else {
+            //ERROR
+        }
+    }
+    Type RETURN(Node* n){
     
     }
-    void addition(Node* n){
+    Type ID(Node* n){
+        for (int i=ids.size()-1;i>=0;i--){
+            auto it = ids[i].find(n->ptrs[0]->display);
+            if (it!=ids[i].end()){
+                return it->second;
+            }
+        }
+        //ERROR
+
+    }
+    Type OR(Node* n){
+        Type left,right;
+        auto aux1 =to_check.find(n->ptrs[0]->display);
+        auto aux2 =to_check.find(n->ptrs[1]->display);
+        if (aux1!=to_check.end()){
+            left=aux1->second(n);
+        }
+        if (aux2!=to_check.end()){
+            right=aux2->second(n);
+        }
+        if (left.type=="BTYPE" && right.type=="BTYPE"){
+            return Type("BTYPE");
+        }
+        else {
+            //ERROR
+        }
+    }
+    Type VARDECL(Node* n){
+        Type t (n->ptrs[0]->display);
+        if (t.type=="ARRAY") {
+            t.ndim = stoi(n->ptrs[0]->ptrs[1]->ptrs[0]->display);
+            t.type=n->ptrs[0]->ptrs[0]->display;
+        }
+        if (!ids.back().emplace(n->ptrs[1]->ptrs[0]->display,t).second){
+            //ERROR
+        }
+
+        //ASSIGN
+    }
+    Type ACCESS(Node* n){
+        int count =1;
+        while ()
+    }
+    Type NOT(Node* n){
+        Type t;
+        auto aux1 =to_check.find(n->ptrs[0]->display);
+        if (aux1!=to_check.end()){
+            t=aux1->second(n);
+        }
+        if (t.type == "BTYPE" && !t.is_array()){
+            return t;
+        }
+        else {
+            //ERROR
+        }
+    }
+    Type NEG(Node* n){
+        Type t;
+        auto aux1 =to_check.find(n->ptrs[0]->display);
+        if (aux1!=to_check.end()){
+            t=aux1->second(n);
+        }
+        if (t.type!="ITYPE" || t.is_array()){
+            //ERROR
+        }
+        else {
+            return t;
+        }
+    }
+    Type assign(Node* n){
+    
+    }
+    Type addition(Node* n){
         
     }
-    void substraction(Node* n){
+    Type substraction(Node* n){
     
     }
-    void multiplication(Node* n){
+    Type multiplication(Node* n){
     
     }
-    void division(Node* n){
+    Type division(Node* n){
     
     }
-    void greater_than(Node* n){
-    
+    Type greater_than(Node* n){
+        Type left,right;
+        auto aux1 =to_check.find(n->ptrs[0]->display);
+        auto aux2 =to_check.find(n->ptrs[1]->display);
+        if (aux1!=to_check.end()){
+            left=aux1->second(n);
+        }
+        if (aux2!=to_check.end()){
+            right=aux2->second(n);
+        }
+        if (left.type==right.type && left.ndim == right.ndim && left.type!="STYPE" && left.type!="BTYPE"){
+            return Type("BTYPE");
+        }
+        else {
+            //ERROR
+        }
     }
-    void less_than(Node* n){
-    
+    Type less_than(Node* n){
+        Type left,right;
+        auto aux1 =to_check.find(n->ptrs[0]->display);
+        auto aux2 =to_check.find(n->ptrs[1]->display);
+        if (aux1!=to_check.end()){
+            left=aux1->second(n);
+        }
+        if (aux2!=to_check.end()){
+            right=aux2->second(n);
+        }
+        if (left.type==right.type && left.ndim == right.ndim && left.type!="STYPE" && left.type!="BTYPE"){
+            return Type("BTYPE");
+        }
+        else {
+            //ERROR
+        }
     }
-    void equal(Node* n){
-    
+    Type equal(Node* n){
+        Type left,right;
+        auto aux1 =to_check.find(n->ptrs[0]->display);
+        auto aux2 =to_check.find(n->ptrs[1]->display);
+        if (aux1!=to_check.end()){
+            left=aux1->second(n);
+        }
+        if (aux2!=to_check.end()){
+            right=aux2->second(n);
+        }
+        if (left.type==right.type && left.ndim == right.ndim){
+            return Type("BTYPE");
+        }
+        else {
+            //ERROR
+        }
     }
-    void not_equal(Node* n){
-    
+    Type not_equal(Node* n){
+        Type left,right;
+        auto aux1 =to_check.find(n->ptrs[0]->display);
+        auto aux2 =to_check.find(n->ptrs[1]->display);
+        if (aux1!=to_check.end()){
+            left=aux1->second(n);
+        }
+        if (aux2!=to_check.end()){
+            right=aux2->second(n);
+        }
+        if (left.type==right.type && left.ndim == right.ndim){
+            return Type("BTYPE");
+        }
+        else {
+            //ERROR
+        }
     }
-    void greater_equal(Node* n){
-    
+    Type greater_equal(Node* n){
+        Type left,right;
+        auto aux1 =to_check.find(n->ptrs[0]->display);
+        auto aux2 =to_check.find(n->ptrs[1]->display);
+        if (aux1!=to_check.end()){
+            left=aux1->second(n);
+        }
+        if (aux2!=to_check.end()){
+            right=aux2->second(n);
+        }
+        if (left.type==right.type && left.ndim == right.ndim && left.type!="STYPE" && left.type!="BTYPE"){
+            return Type("BTYPE");
+        }
+        else {
+            //ERROR
+        }
     }
-    void less_equal(Node* n){
-    
+    Type less_equal(Node* n){
+        Type left,right;
+        auto aux1 =to_check.find(n->ptrs[0]->display);
+        auto aux2 =to_check.find(n->ptrs[1]->display);
+        if (aux1!=to_check.end()){
+            left=aux1->second(n);
+        }
+        if (aux2!=to_check.end()){
+            right=aux2->second(n);
+        }
+        if (left.type==right.type && left.ndim == right.ndim && left.type!="STYPE" && left.type!="BTYPE"){
+            return Type("BTYPE");
+        }
+        else {
+            //ERROR
+        }
     }
-    void modulo(Node* n){
+    Type modulo(Node* n){
     
     }
 };
 
-void check(Node* n, std::unordered_map<std::string,void(*)(Node*n)> &to_check){
-    if (!n) return;
-    auto aux =to_check.find(n->display);
-    if (aux!=to_check.end()){
-        aux->second(n);
-    }
-    for (int i=0;i<n->ptrs.size();i++){
-        check(n->ptrs[i],to_check);
-    }
-}
+
 
 inline void rec_nodeTag(Node* n,std::ofstream& file, std::string &s){
     // if (n->ptrs.empty()) {

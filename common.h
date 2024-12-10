@@ -69,7 +69,7 @@ struct Node
     std::vector<Node*> ptrs;
     std::string nodetag;
     int row, col;
-    Node(const std::string type, const std::vector<Node*>& vec, int row, int col) :
+    Node(const std::string type, const std::vector<Node*>& vec/*, int row, int col*/) :
         display(type), ptrs(vec), row(row), col(col) {}
     Node() {}
 
@@ -82,12 +82,19 @@ struct Type{
     Type(std::string type, int ndim=0) : type(type), ndim(ndim) {}
     Type() {}
     bool is_array() {return ndim;}
-
+    bool operator==(Type t){
+        return type==t.type && ndim==t.ndim;
+    }
+    bool operator!=(Type t){
+        return type!=t.type || ndim!=t.ndim;
+    }
 };
 
 struct TO_CHECK{
-    std::unordered_map<std::string,Type(*)(Node*n)> to_check;
+    std::unordered_map<std::string,Type(*)(Node*)> to_check;
     std::vector<std::unordered_map<std::string,Type>> ids;
+    std::unordered_map<std::string,std::vector<Type>> fun_params;
+    Type to_return;
     TO_CHECK(){
         to_check.emplace("VARDECL",&VARDECL);
         to_check.emplace("+",&addition);
@@ -112,6 +119,13 @@ struct TO_CHECK{
         to_check.emplace("PROGRAM",&PROGRAM);
         to_check.emplace("RETURN",&RETURN);
         to_check.emplace("ID",&ID);
+        to_check.emplace("FUNCTIONCALL",&FUNCTIONCALL);
+        to_check.emplace("ILITERAL",&ILITERAL);
+        to_check.emplace("CLITERAL",&CLITERAL);
+        to_check.emplace("BLITERAL",&BLITERAL);
+        to_check.emplace("SLITERAL",&SLITERAL);
+        to_check.emplace("IF",&IF);
+
     }
 
     void check(Node* n){
@@ -125,23 +139,71 @@ struct TO_CHECK{
         }
     }
 
+    Type IF(Node*n){
+        auto it = to_check.find(n->ptrs[0]->display);
+        if (it!=to_check.end()){
+            if (it->second(n->ptrs[0])!=Type ("BTYPE")){
+                //ERROR
+            }
+        }
+        else {
+            //ERROR
+        }
+
+        for (int i=1;i<n->ptrs.size();i++){
+            check(n->ptrs[i]);
+        }
+        return Type ("BTYPE");
+    }
+
+    Type ILITERAL(Node*n){
+        return Type("ITYPE");
+    }
+
+    Type CLITERAL(Node*n){
+        return Type("CTYPE");
+    }
+
+    Type BLITERAL(Node*n){
+        return Type("BTYPE");
+    }
+
+    Type SLITERAL(Node*n){
+        return Type("STYPE");
+    }
+
     Type FUNCTION(Node*n){
         Type t (n->ptrs[0]->display);
         if (t.type=="ARRAY") {
             t.ndim = stoi(n->ptrs[0]->ptrs[1]->ptrs[0]->display);
             t.type=n->ptrs[0]->ptrs[0]->display;
         }
+        to_return=t;
         if (!ids.back().emplace(n->ptrs[1]->ptrs[0]->display,t).second){
             //ERROR
         }
         else {
             std::unordered_map<std::string,Type> id;
             ids.push_back(id);
+
+
+            for (int i=0;i< n->ptrs[2]->ptrs.size();i++){
+                Type t (n->ptrs[2]->ptrs[i]->ptrs[0]->display);
+                if (t.type=="ARRAY") {
+                    t.ndim = stoi(n->ptrs[2]->ptrs[i]->ptrs[0]->ptrs[1]->ptrs[0]->display);
+                    t.type=n->ptrs[2]->ptrs[i]->ptrs[0]->ptrs[0]->display;
+                }
+                if (!ids.back().emplace(n->ptrs[2]->ptrs[i]->ptrs[1]->ptrs[0]->display,t).second){
+                //ERROR
+                }
+            }
+
             check(n->ptrs[3]);
             ids.pop_back();
             return t;
         }
     }
+
     Type STMTLIST(Node*n){
         std::unordered_map<std::string,Type> id;
         ids.push_back(id);
@@ -179,8 +241,47 @@ struct TO_CHECK{
         }
     }
     Type RETURN(Node* n){
-    
+        auto aux =to_check.find(n->ptrs[0]->display);
+        if (aux!=to_check.end()){
+            if (to_return==aux->second(n)){
+                return to_return;
+            }
+            else {
+                //ERROR
+            }
+        }
+        else {
+            //ERROR
+        }
     }
+    Type FUNCTIONCALL(Node* n){
+
+        auto it = fun_params.find(n->ptrs[0]->ptrs[0]->display);
+        if (it!=fun_params.end()){
+            for (int i=0;i<it->second.size();i++){
+                auto aux =to_check.find(n->ptrs[1]->ptrs[i]->display);
+                if (aux!=to_check.end()){
+                    if (it->second[i]!=aux->second(n)){
+                        //ERROR
+                    }
+                }
+                else {
+                    //ERROR
+                }
+            }
+            
+            for (int i=ids.size()-1;i>=0;i--){
+                auto it2 = ids[i].find(n->ptrs[0]->ptrs[0]->display);
+                if (it2!=ids[i].end()){
+                    return it2->second;
+                }
+            }
+        }
+        else {
+            //ERROR
+        }
+    }
+
     Type ID(Node* n){
         for (int i=ids.size()-1;i>=0;i--){
             auto it = ids[i].find(n->ptrs[0]->display);
@@ -222,7 +323,19 @@ struct TO_CHECK{
     }
     Type ACCESS(Node* n){
         int count =1;
-        while ()
+        while (n->ptrs[0]->display=="ACCESS"){
+            n=n->ptrs[0];
+            count++;
+        }
+        for (int i=ids.size()-1;i>=0;i--){
+            auto it = ids[i].find(n->ptrs[0]->ptrs[0]->display);
+            if (it!=ids[i].end() && it->second.ndim==count){
+                return it->second;
+            }
+            else {
+                //ERROR
+            }
+        }
     }
     Type NOT(Node* n){
         Type t;
@@ -251,19 +364,93 @@ struct TO_CHECK{
         }
     }
     Type assign(Node* n){
-    
+        if (n->ptrs[0]->display!="ID"){
+            //ERROR
+        }
+        else {
+            auto it1 = to_check.find(n->ptrs[0]->display);
+            auto it2 = to_check.find(n->ptrs[1]->display);
+            if (it1!=to_check.end() && it2!=to_check.end()){
+                if (it1->second(n->ptrs[0])!=it2->second(n->ptrs[1])){
+                    //ERROR
+                }
+                else {
+                    return Type("ITYPE");
+                }
+            }
+        }
     }
     Type addition(Node* n){
-        
+        auto left = to_check.find(n->ptrs[0]->display);
+        auto right = to_check.find(n->ptrs[1]->display);
+        Type t("ITYPE");
+        if (left!=to_check.end() && right!=to_check.end()){
+            auto aux1 = left->second(n->ptrs[0]);
+            auto aux2 = right->second(n->ptrs[1]);
+            if (aux1!=t || aux2!=t){
+                    //ERROR
+            }
+            else {
+                return Type("ITYPE");;
+            }
+        }
+        else {
+            //ERROR
+        }
     }
     Type substraction(Node* n){
-    
+        auto left = to_check.find(n->ptrs[0]->display);
+        auto right = to_check.find(n->ptrs[1]->display);
+        Type t("ITYPE");
+        if (left!=to_check.end() && right!=to_check.end()){
+            auto aux1 = left->second(n->ptrs[0]);
+            auto aux2 = right->second(n->ptrs[1]);
+            if (aux1!=t || aux2!=t){
+                    //ERROR
+            }
+            else {
+                return Type("ITYPE");;
+            }
+        }
+        else {
+            //ERROR
+        }
     }
     Type multiplication(Node* n){
-    
+        auto left = to_check.find(n->ptrs[0]->display);
+        auto right = to_check.find(n->ptrs[1]->display);
+        Type t("ITYPE");
+        if (left!=to_check.end() && right!=to_check.end()){
+            auto aux1 = left->second(n->ptrs[0]);
+            auto aux2 = right->second(n->ptrs[1]);
+            if (aux1!=t || aux2!=t){
+                    //ERROR
+            }
+            else {
+                return Type("ITYPE");;
+            }
+        }
+        else {
+            //ERROR
+        }
     }
     Type division(Node* n){
-    
+        auto left = to_check.find(n->ptrs[0]->display);
+        auto right = to_check.find(n->ptrs[1]->display);
+        Type t("ITYPE");
+        if (left!=to_check.end() && right!=to_check.end()){
+            auto aux1 = left->second(n->ptrs[0]);
+            auto aux2 = right->second(n->ptrs[1]);
+            if (aux1!=t || aux2!=t){
+                    //ERROR
+            }
+            else {
+                return Type("ITYPE");;
+            }
+        }
+        else {
+            //ERROR
+        }
     }
     Type greater_than(Node* n){
         Type left,right;
@@ -367,8 +554,24 @@ struct TO_CHECK{
             //ERROR
         }
     }
-    Type modulo(Node* n){
     
+    Type modulo(Node* n){
+        auto left = to_check.find(n->ptrs[0]->display);
+        auto right = to_check.find(n->ptrs[1]->display);
+        Type t("ITYPE");
+        if (left!=to_check.end() && right!=to_check.end()){
+            auto aux1 = left->second(n->ptrs[0]);
+            auto aux2 = right->second(n->ptrs[1]);
+            if (aux1!=t || aux2!=t){
+                    //ERROR
+            }
+            else {
+                return Type("ITYPE");;
+            }
+        }
+        else {
+            //ERROR
+        }
     }
 };
 

@@ -37,6 +37,8 @@ int main(int argc, char *argv[])
     std::vector<std::string> values;
     std::vector<std::pair<int,int>> positions;
 
+    TO_CHECK t_c;
+
     Scanner s1;
 
     std::cout << "INFO SCAN - Start scanning...\n";
@@ -54,7 +56,11 @@ int main(int argc, char *argv[])
 
     Node* correct = p1.parse(tokens,positions,values);
 
+    std::cout << "INFO PARSE - Completed: " << (correct ? "Valid" : "Invalid") << " program\n";
+
     createDOT(correct);
 
-    std::cout << "INFO PARSE - Completed: " << (correct ? "Valid" : "Invalid") << " program\n";
+    t_c.check(correct);
+
+    return 0;
 }

@@ -9,10 +9,14 @@ boolean[] myEval(integer a, integer b)
     return !(a == b) && a > 34 / 52 || b <= -12;
 }
 
-boolean myEval(integer a, integer b)
-{
+boolean myEval(integer[] a, integer b)
+{   
+    myEval(a,b);
+    5=7;
     return !(a == b) && a > 34 / 52 || b <= -12;
 }
+
+
 
 integer main()
 {

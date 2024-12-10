@@ -901,7 +901,7 @@ Node* Parser::parse(const std::vector<Token>& tokens,const std::vector<std::pair
     positionPtr = &position;
     valuesPtr = &values;
     errors = 0;
-    Node* returnVal;
+    Node* returnVal=nullptr;
     
     try
     {

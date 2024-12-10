@@ -7,6 +7,9 @@
 #include <fstream>
 #include <algorithm>
 #include <variant>
+#include <unordered_set>
+#include <unordered_map>
+#include <stack>
 
 enum Token {
     BRACKET_OPEN,       // [
@@ -59,15 +62,127 @@ enum Token {
 
 };
 
+
 struct Node
 {
     std::string display;
     std::vector<Node*> ptrs;
     std::string nodetag;
-    Node(const std::string type, const std::vector<Node*>& vec) :
-        display(type), ptrs(vec) {}
+    int row, col;
+    Node(const std::string type, const std::vector<Node*>& vec, int row, int col) :
+        display(type), ptrs(vec), row(row), col(col) {}
     Node() {}
+
+    
 };
+
+struct TO_CHECK{
+    std::unordered_map<std::string,void(*)(Node*n)> to_check;
+    std::unordered_map<std::string,std::string> ids;
+    std::unordered_map<std::string,std::pair<std::string,int>> arrays;
+    TO_CHECK(){
+        to_check.emplace("VARDECL",&VARDECL);
+        to_check.emplace("+",&addition);
+        to_check.emplace("-",&substraction);
+        to_check.emplace("*",&multiplication);
+        to_check.emplace("/",&division);
+        to_check.emplace("%",&modulo);
+        to_check.emplace("NOT",&NOT);
+        to_check.emplace("NEG",&NEG);
+        to_check.emplace("=",&assign);
+        to_check.emplace(">=",&greater_equal);
+        to_check.emplace(">",&greater_than);
+        to_check.emplace("<=",&less_equal);
+        to_check.emplace("<",&less_than);
+        to_check.emplace("==",&equal);
+        to_check.emplace("!=",&not_equal);
+        to_check.emplace("ACCESS",&ACCESS);
+        to_check.emplace("AND",&AND);
+        to_check.emplace("OR",&OR);
+    }
+    void id_types(Node* n){
+        if (!n) return;
+        if (n->display=="VARDECL"){
+            if (n->ptrs[0]->display=="ARRAY")
+            ids.emplace(n->ptrs[1]->ptrs[0]->display,n->ptrs[0]->display);
+        }
+        for (int i=0;i<n->ptrs.size();i++){
+            id_types(n->ptrs[i]);
+        }
+    }
+
+
+    void AND(Node* n){
+    
+    }
+    void OR(Node* n){
+    
+    }
+    void VARDECL(Node* n){
+    
+    }
+    void ACCESS(Node* n){
+    
+    }
+    void NOT(Node* n){
+        
+    }
+    void NEG(Node* n){
+        if (n->ptrs[0]->display!="ILITERAL"){
+            //ERROR
+        }
+        if (n->ptrs[0]->display!="ILITERAL"){
+
+        }
+    }
+    void assign(Node* n){
+    
+    }
+    void addition(Node* n){
+        
+    }
+    void substraction(Node* n){
+    
+    }
+    void multiplication(Node* n){
+    
+    }
+    void division(Node* n){
+    
+    }
+    void greater_than(Node* n){
+    
+    }
+    void less_than(Node* n){
+    
+    }
+    void equal(Node* n){
+    
+    }
+    void not_equal(Node* n){
+    
+    }
+    void greater_equal(Node* n){
+    
+    }
+    void less_equal(Node* n){
+    
+    }
+    void modulo(Node* n){
+    
+    }
+};
+
+void check(Node* n, std::unordered_map<std::string,void(*)(Node*n)> &to_check){
+    if (!n) return;
+    auto aux =to_check.find(n->display);
+    if (aux!=to_check.end()){
+        aux->second(n);
+    }
+    for (int i=0;i<n->ptrs.size();i++){
+        check(n->ptrs[i],to_check);
+    }
+}
 
 inline void rec_nodeTag(Node* n,std::ofstream& file, std::string &s){
     // if (n->ptrs.empty()) {

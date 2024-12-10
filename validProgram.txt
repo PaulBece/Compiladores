@@ -1,4 +1,8 @@
-integer myVariable = 12;
+integer myVariable = -12;
+integer myVariable2=!-'c';
+boolean myVariable3=5>"hola";
+integer myVariable4 = -myVariable;
+integer myVariable4 = -myVariable[5];
 
 boolean myEval(integer a, integer b)
 {
@@ -32,9 +36,10 @@ integer main()
         integer c=9;
         //a=b=c;
     }
-
-    char[] myArray;
-    if (myArray[0] != 'a' && !myEval(-3, 4))
+    {;}
+    string s= 5-"hola";
+    char[][] myArray;
+    if (myArray[0][1] != 'a' && !myEval(-3, 4))
     {
         integer i = 12;
         integer j = 25;

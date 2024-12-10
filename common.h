@@ -91,48 +91,16 @@ struct Type{
 };
 
 struct TO_CHECK{
-    std::unordered_map<std::string,Type(*)(Node*)> to_check;
+    std::unordered_map<std::string,Type(TO_CHECK::*)(Node*)> to_check;
     std::vector<std::unordered_map<std::string,Type>> ids;
     std::unordered_map<std::string,std::vector<Type>> fun_params;
     Type to_return;
-    TO_CHECK(){
-        to_check.emplace("VARDECL",&VARDECL);
-        to_check.emplace("+",&addition);
-        to_check.emplace("-",&substraction);
-        to_check.emplace("*",&multiplication);
-        to_check.emplace("/",&division);
-        to_check.emplace("%",&modulo);
-        to_check.emplace("NOT",&NOT);
-        to_check.emplace("NEG",&NEG);
-        to_check.emplace("=",&assign);
-        to_check.emplace(">=",&greater_equal);
-        to_check.emplace(">",&greater_than);
-        to_check.emplace("<=",&less_equal);
-        to_check.emplace("<",&less_than);
-        to_check.emplace("==",&equal);
-        to_check.emplace("!=",&not_equal);
-        to_check.emplace("ACCESS",&ACCESS);
-        to_check.emplace("AND",&AND);
-        to_check.emplace("OR",&OR);
-        to_check.emplace("FUNCTION",&FUNCTION);
-        to_check.emplace("STMTLIST",&STMTLIST);
-        to_check.emplace("PROGRAM",&PROGRAM);
-        to_check.emplace("RETURN",&RETURN);
-        to_check.emplace("ID",&ID);
-        to_check.emplace("FUNCTIONCALL",&FUNCTIONCALL);
-        to_check.emplace("ILITERAL",&ILITERAL);
-        to_check.emplace("CLITERAL",&CLITERAL);
-        to_check.emplace("BLITERAL",&BLITERAL);
-        to_check.emplace("SLITERAL",&SLITERAL);
-        to_check.emplace("IF",&IF);
-
-    }
 
     void check(Node* n){
         if (!n) return;
         auto aux =to_check.find(n->display);
         if (aux!=to_check.end()){
-            aux->second(n);
+         (  this->*(aux->second))(n);
         }
         else for (int i=0;i<n->ptrs.size();i++){
             check(n->ptrs[i]);
@@ -142,7 +110,7 @@ struct TO_CHECK{
     Type IF(Node*n){
         auto it = to_check.find(n->ptrs[0]->display);
         if (it!=to_check.end()){
-            if (it->second(n->ptrs[0])!=Type ("BTYPE")){
+            if ((this->*(it->second))(n->ptrs[0])!=Type ("BTYPE")){
                 //ERROR
             }
         }
@@ -228,10 +196,10 @@ struct TO_CHECK{
         auto aux1 =to_check.find(n->ptrs[0]->display);
         auto aux2 =to_check.find(n->ptrs[1]->display);
         if (aux1!=to_check.end()){
-            left=aux1->second(n);
+            left=(this->*(aux1->second))(n);
         }
         if (aux2!=to_check.end()){
-            right=aux2->second(n);
+            right=(this->*(aux2->second))(n);
         }
         if (left.type=="BTYPE" && right.type=="BTYPE"){
             return Type("BTYPE");
@@ -243,7 +211,7 @@ struct TO_CHECK{
     Type RETURN(Node* n){
         auto aux =to_check.find(n->ptrs[0]->display);
         if (aux!=to_check.end()){
-            if (to_return==aux->second(n)){
+            if (to_return==(this->*(aux->second))(n)){
                 return to_return;
             }
             else {
@@ -261,7 +229,7 @@ struct TO_CHECK{
             for (int i=0;i<it->second.size();i++){
                 auto aux =to_check.find(n->ptrs[1]->ptrs[i]->display);
                 if (aux!=to_check.end()){
-                    if (it->second[i]!=aux->second(n)){
+                    if (it->second[i]!=(this->*(aux->second))(n)){
                         //ERROR
                     }
                 }
@@ -297,10 +265,10 @@ struct TO_CHECK{
         auto aux1 =to_check.find(n->ptrs[0]->display);
         auto aux2 =to_check.find(n->ptrs[1]->display);
         if (aux1!=to_check.end()){
-            left=aux1->second(n);
+            left=(this->*(aux1->second))(n);
         }
         if (aux2!=to_check.end()){
-            right=aux2->second(n);
+            right=(this->*(aux2->second))(n);
         }
         if (left.type=="BTYPE" && right.type=="BTYPE"){
             return Type("BTYPE");
@@ -341,7 +309,7 @@ struct TO_CHECK{
         Type t;
         auto aux1 =to_check.find(n->ptrs[0]->display);
         if (aux1!=to_check.end()){
-            t=aux1->second(n);
+            t=(this->*(aux1->second))(n);
         }
         if (t.type == "BTYPE" && !t.is_array()){
             return t;
@@ -354,7 +322,7 @@ struct TO_CHECK{
         Type t;
         auto aux1 =to_check.find(n->ptrs[0]->display);
         if (aux1!=to_check.end()){
-            t=aux1->second(n);
+            t=(this->*(aux1->second))(n);
         }
         if (t.type!="ITYPE" || t.is_array()){
             //ERROR
@@ -371,7 +339,7 @@ struct TO_CHECK{
             auto it1 = to_check.find(n->ptrs[0]->display);
             auto it2 = to_check.find(n->ptrs[1]->display);
             if (it1!=to_check.end() && it2!=to_check.end()){
-                if (it1->second(n->ptrs[0])!=it2->second(n->ptrs[1])){
+                if ((this->*(it1->second))(n->ptrs[0])!=(this->*(it2->second))(n->ptrs[1])){
                     //ERROR
                 }
                 else {
@@ -385,8 +353,8 @@ struct TO_CHECK{
         auto right = to_check.find(n->ptrs[1]->display);
         Type t("ITYPE");
         if (left!=to_check.end() && right!=to_check.end()){
-            auto aux1 = left->second(n->ptrs[0]);
-            auto aux2 = right->second(n->ptrs[1]);
+            auto aux1 = (this->*(left->second))(n->ptrs[0]);
+            auto aux2 = (this->*(right->second))(n->ptrs[1]);
             if (aux1!=t || aux2!=t){
                     //ERROR
             }
@@ -398,13 +366,13 @@ struct TO_CHECK{
             //ERROR
         }
     }
-    Type substraction(Node* n){
+    Type subtraction(Node* n){
         auto left = to_check.find(n->ptrs[0]->display);
         auto right = to_check.find(n->ptrs[1]->display);
         Type t("ITYPE");
         if (left!=to_check.end() && right!=to_check.end()){
-            auto aux1 = left->second(n->ptrs[0]);
-            auto aux2 = right->second(n->ptrs[1]);
+            auto aux1 = (this->*(left->second))(n->ptrs[0]);
+            auto aux2 = (this->*(right->second))(n->ptrs[1]);
             if (aux1!=t || aux2!=t){
                     //ERROR
             }
@@ -421,8 +389,8 @@ struct TO_CHECK{
         auto right = to_check.find(n->ptrs[1]->display);
         Type t("ITYPE");
         if (left!=to_check.end() && right!=to_check.end()){
-            auto aux1 = left->second(n->ptrs[0]);
-            auto aux2 = right->second(n->ptrs[1]);
+            auto aux1 = (this->*(left->second))(n->ptrs[0]);
+            auto aux2 = (this->*(right->second))(n->ptrs[1]);
             if (aux1!=t || aux2!=t){
                     //ERROR
             }
@@ -439,8 +407,8 @@ struct TO_CHECK{
         auto right = to_check.find(n->ptrs[1]->display);
         Type t("ITYPE");
         if (left!=to_check.end() && right!=to_check.end()){
-            auto aux1 = left->second(n->ptrs[0]);
-            auto aux2 = right->second(n->ptrs[1]);
+            auto aux1 = (this->*(left->second))(n->ptrs[0]);
+            auto aux2 = (this->*(right->second))(n->ptrs[1]);
             if (aux1!=t || aux2!=t){
                     //ERROR
             }
@@ -457,10 +425,10 @@ struct TO_CHECK{
         auto aux1 =to_check.find(n->ptrs[0]->display);
         auto aux2 =to_check.find(n->ptrs[1]->display);
         if (aux1!=to_check.end()){
-            left=aux1->second(n);
+            left=(this->*(aux1->second))(n);
         }
         if (aux2!=to_check.end()){
-            right=aux2->second(n);
+            right=(this->*(aux2->second))(n);
         }
         if (left.type==right.type && left.ndim == right.ndim && left.type!="STYPE" && left.type!="BTYPE"){
             return Type("BTYPE");
@@ -474,10 +442,10 @@ struct TO_CHECK{
         auto aux1 =to_check.find(n->ptrs[0]->display);
         auto aux2 =to_check.find(n->ptrs[1]->display);
         if (aux1!=to_check.end()){
-            left=aux1->second(n);
+            left=(this->*(aux1->second))(n);
         }
         if (aux2!=to_check.end()){
-            right=aux2->second(n);
+            right=(this->*(aux2->second))(n);
         }
         if (left.type==right.type && left.ndim == right.ndim && left.type!="STYPE" && left.type!="BTYPE"){
             return Type("BTYPE");
@@ -491,10 +459,10 @@ struct TO_CHECK{
         auto aux1 =to_check.find(n->ptrs[0]->display);
         auto aux2 =to_check.find(n->ptrs[1]->display);
         if (aux1!=to_check.end()){
-            left=aux1->second(n);
+            left=(this->*(aux1->second))(n);
         }
         if (aux2!=to_check.end()){
-            right=aux2->second(n);
+            right=(this->*(aux2->second))(n);
         }
         if (left.type==right.type && left.ndim == right.ndim){
             return Type("BTYPE");
@@ -508,10 +476,10 @@ struct TO_CHECK{
         auto aux1 =to_check.find(n->ptrs[0]->display);
         auto aux2 =to_check.find(n->ptrs[1]->display);
         if (aux1!=to_check.end()){
-            left=aux1->second(n);
+            left=(this->*(aux1->second))(n);
         }
         if (aux2!=to_check.end()){
-            right=aux2->second(n);
+            right=(this->*(aux2->second))(n);
         }
         if (left.type==right.type && left.ndim == right.ndim){
             return Type("BTYPE");
@@ -525,10 +493,10 @@ struct TO_CHECK{
         auto aux1 =to_check.find(n->ptrs[0]->display);
         auto aux2 =to_check.find(n->ptrs[1]->display);
         if (aux1!=to_check.end()){
-            left=aux1->second(n);
+            left=(this->*(aux1->second))(n);
         }
         if (aux2!=to_check.end()){
-            right=aux2->second(n);
+            right=(this->*(aux2->second))(n);
         }
         if (left.type==right.type && left.ndim == right.ndim && left.type!="STYPE" && left.type!="BTYPE"){
             return Type("BTYPE");
@@ -542,10 +510,10 @@ struct TO_CHECK{
         auto aux1 =to_check.find(n->ptrs[0]->display);
         auto aux2 =to_check.find(n->ptrs[1]->display);
         if (aux1!=to_check.end()){
-            left=aux1->second(n);
+            left=(this->*(aux1->second))(n);
         }
         if (aux2!=to_check.end()){
-            right=aux2->second(n);
+            right=(this->*(aux2->second))(n);
         }
         if (left.type==right.type && left.ndim == right.ndim && left.type!="STYPE" && left.type!="BTYPE"){
             return Type("BTYPE");
@@ -560,8 +528,8 @@ struct TO_CHECK{
         auto right = to_check.find(n->ptrs[1]->display);
         Type t("ITYPE");
         if (left!=to_check.end() && right!=to_check.end()){
-            auto aux1 = left->second(n->ptrs[0]);
-            auto aux2 = right->second(n->ptrs[1]);
+            auto aux1 = (this->*(left->second))(n->ptrs[0]);
+            auto aux2 = (this->*(right->second))(n->ptrs[1]);
             if (aux1!=t || aux2!=t){
                     //ERROR
             }
@@ -572,6 +540,40 @@ struct TO_CHECK{
         else {
             //ERROR
         }
+    }
+
+    
+    TO_CHECK(){
+        to_check.emplace("VARDECL",&TO_CHECK::VARDECL);
+        to_check.emplace("+",&TO_CHECK::addition);
+        to_check.emplace("-",&TO_CHECK::subtraction);
+        to_check.emplace("*",&TO_CHECK::multiplication);
+        to_check.emplace("/",&TO_CHECK::division);
+        to_check.emplace("%",&TO_CHECK::modulo);
+        to_check.emplace("NOT",&TO_CHECK::NOT);
+        to_check.emplace("NEG",&TO_CHECK::NEG);
+        to_check.emplace("=",&TO_CHECK::assign);
+        to_check.emplace(">=",&TO_CHECK::greater_equal);
+        to_check.emplace(">",&TO_CHECK::greater_than);
+        to_check.emplace("<=",&TO_CHECK::less_equal);
+        to_check.emplace("<",&TO_CHECK::less_than);
+        to_check.emplace("==",&TO_CHECK::equal);
+        to_check.emplace("!=",&TO_CHECK::not_equal);
+        to_check.emplace("ACCESS",&TO_CHECK::ACCESS);
+        to_check.emplace("AND",&TO_CHECK::AND);
+        to_check.emplace("OR",&TO_CHECK::OR);
+        to_check.emplace("FUNCTION",&TO_CHECK::FUNCTION);
+        to_check.emplace("STMTLIST",&TO_CHECK::STMTLIST);
+        to_check.emplace("PROGRAM",&TO_CHECK::PROGRAM);
+        to_check.emplace("RETURN",&TO_CHECK::RETURN);
+        to_check.emplace("ID",&TO_CHECK::ID);
+        to_check.emplace("FUNCTIONCALL",&TO_CHECK::FUNCTIONCALL);
+        to_check.emplace("ILITERAL",&TO_CHECK::ILITERAL);
+        to_check.emplace("CLITERAL",&TO_CHECK::CLITERAL);
+        to_check.emplace("BLITERAL",&TO_CHECK::BLITERAL);
+        to_check.emplace("SLITERAL",&TO_CHECK::SLITERAL);
+        to_check.emplace("IF",&TO_CHECK::IF);
+
     }
 };
 

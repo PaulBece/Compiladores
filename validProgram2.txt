@@ -1,0 +1,1 @@
+integer myVariable = -12;

@@ -102,7 +102,11 @@ struct TO_CHECK{
 
     void ERROR(Node* n){
         std::ostringstream oss;
-        oss << "ERROR EN (" << n->row << "," << n->col << ")";
+        oss << "ERROR EN "<<n->display<<" (" << n->row << "," << n->col << ")";
+        oss<<" CON HIJOS ";
+        for (int i =0;i<n->ptrs.size();i++){
+            oss<<n->ptrs[i]->display<<" ";
+        }
         std::string errorMessage = oss.str();
         errors.push_back(errorMessage);
     }
@@ -382,10 +386,6 @@ struct TO_CHECK{
             auto it = ids[i].find(n->ptrs[0]->ptrs[0]->display);
             if (it!=ids[i].end() && it->second.ndim==count){
                 return Type (it->second.type);
-            }
-            else {
-                ERROR(n);
-                return Type("BTYPE");
             }
         }
         ERROR(n);

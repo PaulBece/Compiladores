@@ -53,7 +53,7 @@ integer main()
     {;}
     string s= "hola";
     char[][] myArray2;
-    if (myArray2[0][1] != 'a' && !myEval(-3, 4))
+    if (myArray2[0][5] != 'a' && !myEval(-3, 4))
     {
         integer i = 12;
         integer j = 25;

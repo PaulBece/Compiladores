@@ -306,7 +306,7 @@ digraph G {
     ZZZZZZZZZZZS [label="ILITERAL"];
     ZZZZZZZZZZZT [label="0"];
     ZZZZZZZZZZZU [label="ILITERAL"];
-    ZZZZZZZZZZZV [label="1"];
+    ZZZZZZZZZZZV [label="5"];
     ZZZZZZZZZZZW [label="CLITERAL"];
     ZZZZZZZZZZZX [label="'a'"];
     ZZZZZZZZZZZY [label="NOT"];

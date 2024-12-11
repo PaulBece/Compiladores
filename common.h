@@ -100,13 +100,24 @@ struct TO_CHECK{
     Type to_return;
     std::vector<std::string> errors;
 
-    void ERROR(Node* n){
+    void TYPE_ERROR(Node* n){
         std::ostringstream oss;
-        oss << "ERROR EN "<<n->display<<" (" << n->row << "," << n->col << ")";
-        oss<<" CON HIJOS ";
-        for (int i =0;i<n->ptrs.size();i++){
-            oss<<n->ptrs[i]->display<<" ";
-        }
+        oss << "Type error at "<<n->display<<" (" << n->row << "," << n->col << ")";
+        //oss<<" CON HIJOS ";
+        // for (int i =0;i<n->ptrs.size();i++){
+        //     oss<<n->ptrs[i]->display<<" ";
+        // }
+        std::string errorMessage = oss.str();
+        errors.push_back(errorMessage);
+    }
+
+    void ID_ERROR(Node* n){
+        std::ostringstream oss;
+        oss << "Invalid identifier at "<<" (" << n->row << "," << n->col << ")";
+        //oss<<" CON HIJOS ";
+        // for (int i =0;i<n->ptrs.size();i++){
+        //     oss<<n->ptrs[i]->display<<" ";
+        // }
         std::string errorMessage = oss.str();
         errors.push_back(errorMessage);
     }
@@ -135,12 +146,12 @@ struct TO_CHECK{
         auto it = to_check.find(n->ptrs[0]->display);
         if (it!=to_check.end()){
             if ((this->*(it->second))(n->ptrs[0])!=Type ("BTYPE")){
-                ERROR(n);
+                TYPE_ERROR(n);
                 return Type("BTYPE");
             }
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("BTYPE");
         }
 
@@ -176,7 +187,7 @@ struct TO_CHECK{
         }
         to_return=t;
         if (!ids.back().emplace(n->ptrs[1]->ptrs[0]->display,t).second){
-            ERROR(n);
+            ID_ERROR(n);
             return Type("BTYPE");
         }
         else {
@@ -200,7 +211,7 @@ struct TO_CHECK{
                         t.type=n->ptrs[2]->ptrs[i]->ptrs[0]->ptrs[0]->display;
                     }
                     if (!ids.back().emplace(n->ptrs[2]->ptrs[i]->ptrs[1]->ptrs[0]->display,t).second){
-                        ERROR(n);
+                        ID_ERROR(n);
                         return Type("BTYPE");
                     }
                     vec.push_back(t);
@@ -249,7 +260,7 @@ struct TO_CHECK{
             return Type("BTYPE");
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("BTYPE");
         }
     }
@@ -260,12 +271,12 @@ struct TO_CHECK{
                 return to_return;
             }
             else {
-                ERROR(n);
+                TYPE_ERROR(n);
                 return to_return;
             }
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return to_return;
         }
     }
@@ -279,13 +290,13 @@ struct TO_CHECK{
                 auto aux =to_check.find(n->ptrs[1]->ptrs[i]->display);
                 if (aux!=to_check.end()){
                     if (it->second[i]!=(this->*(aux->second))(n->ptrs[1]->ptrs[i])){
-                        ERROR(n);
+                        TYPE_ERROR(n);
                         return Type("BTYPE");
                     }
                     //std::cout<<"EN FUNCALL SIN ERROR\n";
                 }
                 else {
-                    ERROR(n);
+                    ID_ERROR(n);
                     return Type("BTYPE");
                 }
             }
@@ -296,11 +307,11 @@ struct TO_CHECK{
                     return it2->second;
                 }
             }
-            ERROR(n);
+            ID_ERROR(n);
             return Type("BTYPE");
         }
         else {
-            ERROR(n);
+            ID_ERROR(n);
             return Type("BTYPE");
         }
     }
@@ -312,7 +323,7 @@ struct TO_CHECK{
                 return it->second;
             }
         }
-        ERROR(n);
+        ID_ERROR(n);
         return Type("BTYPE");
 
     }
@@ -330,7 +341,7 @@ struct TO_CHECK{
             return Type("BTYPE");
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("BTYPE");
         }
     }
@@ -345,7 +356,7 @@ struct TO_CHECK{
         }
         //std::cout<<n->ptrs[1]->ptrs[0]->display<<"\n";
         if (!(ids.back().emplace(n->ptrs[1]->ptrs[0]->display,t).second)){
-            ERROR(n);
+            ID_ERROR(n);
             return Type("BTYPE");
             //std::cout<<"ERROR55\n";
         }
@@ -361,7 +372,7 @@ struct TO_CHECK{
             auto aux =(this->*(it1->second))(n->ptrs[2]);
             //std::cout<<aux.type<<"\n";
             if (aux!=t){
-                ERROR(n);
+                TYPE_ERROR(n);
                 return Type("BTYPE");
                 //std::cout<<"ERROR1\n";
             }
@@ -371,7 +382,7 @@ struct TO_CHECK{
             }
         }
         else{
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("BTYPE");
         }
 
@@ -388,7 +399,7 @@ struct TO_CHECK{
                 return Type (it->second.type);
             }
         }
-        ERROR(n);
+        ID_ERROR(n);
         return Type("BTYPE");
     }
     Type NOT(Node* n){
@@ -402,7 +413,7 @@ struct TO_CHECK{
             return t;
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("BTYPE");
         }
     }
@@ -417,12 +428,12 @@ struct TO_CHECK{
             t=(this->*(aux1->second))(n->ptrs[0]);
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("ITYPE");
         }
         //std::cout<<t.type<<"\n";
         if (t.type!="ITYPE" || t.is_array()){
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("ITYPE");
         }
         else {
@@ -436,7 +447,7 @@ struct TO_CHECK{
             auto it2 = to_check.find(n->ptrs[1]->display);
             if (it1!=to_check.end() && it2!=to_check.end()){
                 if ((this->*(it1->second))(n->ptrs[0])!=(this->*(it2->second))(n->ptrs[1])){
-                    ERROR(n);
+                    TYPE_ERROR(n);
                     return Type("ITYPE");
                 }
                 else {
@@ -449,7 +460,7 @@ struct TO_CHECK{
             auto it2 = to_check.find(n->ptrs[1]->display);
             if (it1!=to_check.end() && it2!=to_check.end()){
                 if ((this->*(it1->second))(n->ptrs[0]).type!=(this->*(it2->second))(n->ptrs[1]).type){
-                    ERROR(n);
+                    TYPE_ERROR(n);
                     return Type("ITYPE");
                 }
                 else {
@@ -457,15 +468,15 @@ struct TO_CHECK{
                 }
             }
             else {
-                ERROR(n);
+                TYPE_ERROR(n);
                 return Type("BTYPE");
             }
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("ITYPE");
         }
-        ERROR(n);
+        TYPE_ERROR(n);
         return Type("BTYPE");
     }
     Type addition(Node* n){
@@ -476,7 +487,7 @@ struct TO_CHECK{
             auto aux1 = (this->*(left->second))(n->ptrs[0]);
             auto aux2 = (this->*(right->second))(n->ptrs[1]);
             if (aux1!=t || aux2!=t){
-                    ERROR(n);
+                    TYPE_ERROR(n);
                     return Type("ITYPE");
             }
             else {
@@ -484,7 +495,7 @@ struct TO_CHECK{
             }
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("ITYPE");
         }
     }
@@ -496,7 +507,7 @@ struct TO_CHECK{
             auto aux1 = (this->*(left->second))(n->ptrs[0]);
             auto aux2 = (this->*(right->second))(n->ptrs[1]);
             if (aux1!=t || aux2!=t){
-                    ERROR(n);
+                    TYPE_ERROR(n);
                     return Type("ITYPE");
             }
             else {
@@ -504,7 +515,7 @@ struct TO_CHECK{
             }
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("ITYPE");
         }
     }
@@ -516,7 +527,7 @@ struct TO_CHECK{
             auto aux1 = (this->*(left->second))(n->ptrs[0]);
             auto aux2 = (this->*(right->second))(n->ptrs[1]);
             if (aux1!=t || aux2!=t){
-                    ERROR(n);
+                    TYPE_ERROR(n);
                     return Type("ITYPE");
             }
             else {
@@ -524,7 +535,7 @@ struct TO_CHECK{
             }
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("ITYPE");
         }
     }
@@ -536,7 +547,7 @@ struct TO_CHECK{
             auto aux1 = (this->*(left->second))(n->ptrs[0]);
             auto aux2 = (this->*(right->second))(n->ptrs[1]);
             if (aux1!=t || aux2!=t){
-                    ERROR(n);
+                    TYPE_ERROR(n);
                     return Type("ITYPE");
             }
             else {
@@ -544,7 +555,7 @@ struct TO_CHECK{
             }
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("ITYPE");
         }
     }
@@ -562,7 +573,7 @@ struct TO_CHECK{
             return Type("BTYPE");
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("BTYPE");
         }
     }
@@ -580,7 +591,7 @@ struct TO_CHECK{
             return Type("BTYPE");
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("BTYPE");
         }
     }
@@ -598,7 +609,7 @@ struct TO_CHECK{
             return Type("BTYPE");
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("BTYPE");
         }
     }
@@ -616,7 +627,7 @@ struct TO_CHECK{
             return Type("BTYPE");
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("BTYPE");
         }
     }
@@ -634,7 +645,7 @@ struct TO_CHECK{
             return Type("BTYPE");
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("BTYPE");
         }
     }
@@ -652,7 +663,7 @@ struct TO_CHECK{
             return Type("BTYPE");
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("BTYPE");
         }
     }
@@ -665,7 +676,7 @@ struct TO_CHECK{
             auto aux1 = (this->*(left->second))(n->ptrs[0]);
             auto aux2 = (this->*(right->second))(n->ptrs[1]);
             if (aux1!=t || aux2!=t){
-                    ERROR(n);
+                    TYPE_ERROR(n);
                     return Type("ITYPE");
             }
             else {
@@ -673,7 +684,7 @@ struct TO_CHECK{
             }
         }
         else {
-            ERROR(n);
+            TYPE_ERROR(n);
             return Type("ITYPE");
         }
     }

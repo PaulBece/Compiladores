@@ -58,8 +58,8 @@ digraph G {
     ZZE [label="myArray"];
     ZZF [label="ILITERAL"];
     ZZG [label="5"];
-    ZZH [label="ILITERAL"];
-    ZZI [label="8"];
+    ZZH [label="CLITERAL"];
+    ZZI [label="'c'"];
     ZZJ [label="RETURN"];
     ZZK [label="OR"];
     ZZL [label="AND"];

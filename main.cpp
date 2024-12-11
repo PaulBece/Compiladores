@@ -61,6 +61,7 @@ int main(int argc, char *argv[])
     createDOT(correct);
 
     t_c.check(correct);
+    t_c.displayErrors();
 
     return 0;
 }

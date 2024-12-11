@@ -9,7 +9,7 @@ integer myVariable5 = -myArray[5];
 
 boolean myEval(integer a, integer b)
 {
-    myArray[5]=8;
+    myArray[5]='c';
     return !(a == b) && a > 34 / 52 || b <= -12;
 }
 

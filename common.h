@@ -70,7 +70,7 @@ struct Node
     std::vector<Node*> ptrs;
     std::string nodetag;
     int row, col;
-    Node(const std::string type, const std::vector<Node*>& vec/*, int row, int col*/) :
+    Node(const std::string type, const std::vector<Node*>& vec, int row, int col) :
         display(type), ptrs(vec), row(row), col(col) {}
     Node() {}
 

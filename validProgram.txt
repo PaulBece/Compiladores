@@ -11,6 +11,8 @@ boolean myEval(integer a, integer b)
 {
     myArray[5]='c';
     return !(a == b) && a > 34 / 52 || b <= -12;
+    i = 4;
+    myEval(a, 'b', a);
 }
 
 boolean myEval2(integer a, integer b)
@@ -24,7 +26,9 @@ boolean myEval2(integer a, integer b)
 
 integer main()
 {
+
     integer i = 0;
+    i = 12 * 24;
     for (i = 0; i < 72; i = i + 1;)
     {
         myVariable = 4 + (5 - 45) * 12 % -myVariable;
@@ -49,6 +53,7 @@ integer main()
         integer b =1;
         integer c=9;
         //a=b=c;
+        myVariable4 = 'c';
     }
     {;}
     string s= "hola";
@@ -57,6 +62,7 @@ integer main()
     {
         integer i = 12;
         integer j = 25;
+        myArra[0] = myArray2[1];
     }
 
     integer g = 12;

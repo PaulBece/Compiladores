@@ -113,7 +113,14 @@ struct TO_CHECK{
 
     void ID_ERROR(Node* n){
         std::ostringstream oss;
-        oss << "Invalid identifier at "<<" (" << n->row << "," << n->col << ")";
+        if (n->display == "ID")
+        {
+            oss << "Invalid identifier " << n->ptrs[0]->display << " at "<<" (" << n->row << "," << n->col << ")";
+        }
+        else
+        {
+            oss << "Invalid identifier at "<<" (" << n->row << "," << n->col << ")";
+        }
         //oss<<" CON HIJOS ";
         // for (int i =0;i<n->ptrs.size();i++){
         //     oss<<n->ptrs[i]->display<<" ";
@@ -284,7 +291,16 @@ struct TO_CHECK{
 
         auto it = fun_params.find(n->ptrs[0]->ptrs[0]->display);
         //std::cout<<"EN FUNCALL\n";
+        int c = n->ptrs[1]->ptrs.size();
+        
         if (it!=fun_params.end()){
+            if (c!=it->second.size()) {
+                std::ostringstream oss;
+                oss << "Invalid number of arguments in functioncall " << n->ptrs[0]->ptrs[0]->display << " at "<<" (" << n->row << "," << n->col << ")";
+                std::string errorMessage = oss.str();
+                errors.push_back(errorMessage);
+                return Type("BTYPE");
+            }
             //std::cout<<"EN FUNCALL\n";
             for (int i=0;i<it->second.size();i++){
                 auto aux =to_check.find(n->ptrs[1]->ptrs[i]->display);
@@ -395,8 +411,12 @@ struct TO_CHECK{
         }
         for (int i=ids.size()-1;i>=0;i--){
             auto it = ids[i].find(n->ptrs[0]->ptrs[0]->display);
-            if (it!=ids[i].end() && it->second.ndim==count){
-                return Type (it->second.type);
+            if (it!=ids[i].end())
+            {
+                if (it->second.ndim==count)
+                    return Type (it->second.type);
+                TYPE_ERROR(n);
+                return Type("BTYPE");
             }
         }
         ID_ERROR(n);
